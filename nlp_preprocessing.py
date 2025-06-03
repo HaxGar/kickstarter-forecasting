@@ -53,13 +53,16 @@ def preprocessing_sentence(comment: str)->str:
 
     return cleaned_sentence
 
-def preprocessing(df: pd.DataFrame, ngram_range=(1,1)) : #renvoi : scipy.sparse._csr.csr_matrix
-    X_preproc =df["X"].apply(preprocessing_sentence)
+def preprocessing(X: pd.DataFrame, ngram_range=(1,1)) -> pd.DataFrame :
+    return X.apply(preprocessing_sentence)
+
+def preprocessing_with_vectorization(X: pd.DataFrame, ngram_range=(1,1)) : #renvoi : scipy.sparse._csr.csr_matrix
+    X_preproc =X.apply(preprocessing_sentence)
     # vectorization :
     count_vectorizer = CountVectorizer(ngram_range=ngram_range)
     X_preproc = count_vectorizer.fit_transform(X_preproc)
     #print(type(X_preproc))
     return X_preproc
 
-#df=data.load_merged_data()
-#print(preprocessing(df))
+# df=data.load_merged_data().iloc[:500]
+# print(preprocessing_with_vectorization(df['X']))
