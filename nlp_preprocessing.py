@@ -4,8 +4,9 @@
 # 1 - DATA MANIPULATION
 import pandas as pd
 
+
 # 2 - DATA VISUALISATION
-import matplotlib.pyplot as plt
+import data
 
 import string
 
@@ -44,8 +45,9 @@ def lemmatizing(tokenized_sentence_cleaned):
     ]
     return lemmatized
 
-def preprocessing(sentence):
-    sentence=cleaning(sentence)
+def preprocessing_sentence(comment: str)->str:
+
+    sentence=cleaning(comment)
     tokenized_sentence=tokenize(sentence)
     tokenized_sentence_cleaned=removing_words(tokenized_sentence)
     lemmatized=lemmatizing(tokenized_sentence_cleaned)
@@ -53,5 +55,9 @@ def preprocessing(sentence):
 
     return cleaned_sentence
 
-# df['cleaned_comment'] = df['comments'].apply(preprocessing)
-# df[['comments', 'cleaned_comment']].head()
+def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
+    df["X_preproc"]=df["X"].apply(preprocessing_sentence)
+    return df["X_preproc"]
+
+# df=data.load_merged_data()
+# print(preprocessing(df))
