@@ -1,18 +1,16 @@
-
-# !pip install nltk
-
-# 1 - DATA MANIPULATION
+# !pip install -r requirements.txt
 import pandas as pd
-
-
-# 2 - DATA VISUALISATION
-import data
 
 import string
 
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+# debug :
+import data
 
 def cleaning(sentence):
     # Basic cleaning
@@ -55,9 +53,13 @@ def preprocessing_sentence(comment: str)->str:
 
     return cleaned_sentence
 
-def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
-    df["X_preproc"]=df["X"].apply(preprocessing_sentence)
-    return df["X_preproc"]
+def preprocessing(df: pd.DataFrame, ngram_range=(1,1)) : #renvoi : scipy.sparse._csr.csr_matrix
+    X_preproc =df["X"].apply(preprocessing_sentence)
+    # vectorization :
+    count_vectorizer = CountVectorizer(ngram_range=ngram_range)
+    X_preproc = count_vectorizer.fit_transform(X_preproc)
+    #print(type(X_preproc))
+    return X_preproc
 
-# df=data.load_merged_data()
-# print(preprocessing(df))
+#df=data.load_merged_data()
+#print(preprocessing(df))
