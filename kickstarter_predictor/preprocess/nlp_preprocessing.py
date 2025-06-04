@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 
 # debug :
-import data
+import kickstarter_predictor.data as data
 
 stop_words = set(stopwords.words('english')) ## define stopw
 lemmatizer = WordNetLemmatizer()
