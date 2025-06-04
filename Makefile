@@ -1,6 +1,6 @@
-GIT_USER = 'HaxGar'
-PROJECT_NAME = 'kickstarter-forecasting'
-DATA_DIR=~/code/${GIT_USER}/${PROJECT_NAME}/data
+include .env
+
+DATA_DIR=${ROOT}/data
 DL_URL=https://files.slack.com/files-pri/T02NE0241-
 
 reset_data_files:
@@ -19,3 +19,6 @@ reset_processed_data_files:
 	mkdir ${DATA_DIR}/processed
 	mkdir ${DATA_DIR}/processed/par_commentaire
 	mkdir ${DATA_DIR}/processed/par_projet
+
+test :
+	@echo ${DATA_DIR}
