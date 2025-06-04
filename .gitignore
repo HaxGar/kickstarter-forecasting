@@ -1,6 +1,7 @@
 # New files / folders
-raw_data/
+data/
 notebook/
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
