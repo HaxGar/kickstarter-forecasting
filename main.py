@@ -11,8 +11,11 @@ cleaned_comments = data.load_merged_data(ligne_par_ligne=True)#.iloc[:10000]
 X = cleaned_comments['X']
 y = cleaned_comments['y']
 
-preproc_X =  nlp_preprocessing.preprocessing(X)
-
+preproc_X =  nlp_preprocessing.preprocessing(X,
+                                             tokenized = True,
+                                             removed_word = True,
+                                             lemmatized=True)
+# print(preproc_X)
 pipeline_naive_bayes = make_pipeline(
     TfidfVectorizer(),
     MultinomialNB()
