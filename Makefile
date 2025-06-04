@@ -20,7 +20,7 @@ reset_processed_data_files:
 	mkdir ${DATA_DIR}/processed/par_commentaire
 	mkdir ${DATA_DIR}/processed/par_projet
 
-preprocess_all:
+preprocess_all_versions:
 	python -c 'from kickstarter_predictor.data import load_data; load_data(True,True,True,True)'
 	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,True,True)'
 	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,False,True)'
@@ -38,3 +38,6 @@ preprocess_all:
 	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,False,True)'
 	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,False,False)'
 	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,True,False)'
+
+install:
+	pip install -e .
