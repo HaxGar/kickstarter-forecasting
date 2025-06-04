@@ -45,7 +45,7 @@ def load_raw_commentaires()->pd.DataFrame:
 
     return df_comments
 
-def load_merged_raw_data(ligne_par_ligne:bool)->pd.DataFrame:
+def load_merged_raw_data(ligne_par_commentaire:bool)->pd.DataFrame:
     '''
     merge the two df : comments and projects
     ligne par ligne si ligne_par_ligne==True,
@@ -60,7 +60,7 @@ def load_merged_raw_data(ligne_par_ligne:bool)->pd.DataFrame:
         )
     )
 
-    if ligne_par_ligne :
+    if ligne_par_commentaire :
         df_merged = df_merged.explode('commentaires').reset_index(drop=True)
     else :
         df_merged['commentaires'] = df_merged['commentaires'].apply(
@@ -127,7 +127,7 @@ def cleaning_sentence(
 
 ## callable functions
 def load_data(
-    ligne_par_ligne: bool = True,
+    ligne_par_commentaire: bool = True,
     remove_ponctuation: bool = True,
     remove_stop_words: bool = True,
     lemmatize: bool = True
@@ -142,8 +142,8 @@ def load_data(
         - avec ou sans lemmatization (lemmatize: True || False)
     '''
     #1) load merged data from cache ou de raw
-    if ligne_par_ligne : scenario = 'par_projet'
-    else : scenario = 'par_commentaire'
+    if ligne_par_commentaire : scenario = 'par_commentaire'
+    else : scenario = 'par_projet'
 
     filename = 'merged_data'
 
@@ -162,7 +162,7 @@ def load_data(
     if cache_path.is_file():
         df = pd.read_csv(cache_path)
     else :
-        df = load_merged_raw_data(ligne_par_ligne)
+        df = load_merged_raw_data(ligne_par_commentaire)
         # cleaning :
         df['X'] = df['X'].apply(
             cleaning_sentence,
