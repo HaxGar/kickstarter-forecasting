@@ -1,6 +1,5 @@
-import numpy as np
-import data
-import nlp_preprocessing
+import kickstarter_predictor.data as data
+import kickstarter_predictor.preprocess.nlp_preprocessing as nlp_preprocessing
 from sklearn.model_selection import cross_validate
 from sklearn.pipeline import make_pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
