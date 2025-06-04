@@ -20,5 +20,21 @@ reset_processed_data_files:
 	mkdir ${DATA_DIR}/processed/par_commentaire
 	mkdir ${DATA_DIR}/processed/par_projet
 
-test :
-	@echo ${DATA_DIR}
+preprocess_all:
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,True,True,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,True,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,False,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,False,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,False,True,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,True,False,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,True,False,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(True,True,True,False)'
+
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,True,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,False,True,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,False,False,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,False,False,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,False,True,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,False,True)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,False,False)'
+	python -c 'from kickstarter_predictor.data import load_data; load_data(False,True,True,False)'
