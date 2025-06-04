@@ -72,10 +72,9 @@ def load_data(
     cache_path = Path(LOCAL_DATA_PATH).joinpath('processed', f"{data_type}_data.csv")
 
     if cached_version and cache_path.is_file():
-        print('from cache')
         df = pd.read_csv(cache_path)
     else :
-        print('reprocess')
         df = load_merged_raw_data()
         df.to_csv(cache_path)
+
     return df
