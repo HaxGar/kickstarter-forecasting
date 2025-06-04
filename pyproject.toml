@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kickstarter_predictor"
+version = "0.0.1"
+readme = "README.md"
+requires-python=">=3.12.9"
+description = "kickstartup_forecasting Model"
+
+dependencies = [
+    "nltk",
+    "scikit-learn"     # Machine learning
+]
+
+[tool.setuptools.packages.find]
+where = ["."]

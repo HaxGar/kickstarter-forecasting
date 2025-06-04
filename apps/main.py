@@ -1,4 +1,3 @@
-import numpy as np
 import kickstarter_predictor.data as data
 import kickstarter_predictor.preprocess.nlp_preprocessing as nlp_preprocessing
 from sklearn.model_selection import cross_validate
