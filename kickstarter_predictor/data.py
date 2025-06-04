@@ -170,7 +170,6 @@ def load_data(
             remove_stop_words=remove_stop_words,
             lemmatize=lemmatize
         )
-
         df.to_csv(cache_path)
 
-    return df
+    return df.dropna()
