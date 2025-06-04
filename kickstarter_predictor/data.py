@@ -3,7 +3,7 @@ import ast
 
 from pathlib import Path
 
-from attila.params import *
+from kickstarter_predictor.params import *
 
 #cleaning
 import string
