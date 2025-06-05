@@ -7,6 +7,7 @@ from kickstarter_predictor.params import *
 
 #cleaning
 import string
+import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -88,10 +89,33 @@ def removing_ponctuation(sentence:str)->str:
     return sentence
 
 def removing_stop_words(tokenized_sentence:list)->list:
-    return [w for w in tokenized_sentence if not w in stop_words]
+
+    '''
+    Supprime les stopwords et les mots qui ne sont pas composés uniquement de lettres (avec accents) et chiffres.
+    '''
+    tokenized_sentence_cleaned = [
+        w for w in tokenized_sentence
+        if (w not in stop_words) and re.fullmatch(r'[a-zA-ZÀ-ÿ0-9]+', w)
+    ]
+    return tokenized_sentence_cleaned
 
 def lemmatizing(tokenized_sentence_cleaned:list)->list:
-    return [lemmatizer.lemmatize(word, pos="v") for word in tokenized_sentence_cleaned]
+    '''
+    Lemmatisation des mots d'abord comme verbes, puis comme noms
+    '''
+    # Étape 1 : lemmatisation comme verbes
+    verb_lemmatized = [
+        lemmatizer.lemmatize(word, pos="v")
+        for word in tokenized_sentence_cleaned
+    ]
+
+    # Étape 2 : lemmatisation comme noms
+    noun_lemmatized = [
+        lemmatizer.lemmatize(word, pos="n")
+        for word in verb_lemmatized
+    ]
+
+    return noun_lemmatized
 
 def cleaning_sentence(
     comment: str,
