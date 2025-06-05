@@ -165,7 +165,7 @@ def load_data(
         - avec ou sans stop words (remove_stop_words: True || False)
         - avec ou sans lemmatization (lemmatize: True || False)
     '''
-    print("load_data")
+    #print("load_data")
     #1) load merged data from cache ou de raw
     if ligne_par_commentaire :
         scenario = 'par_commentaire'
@@ -203,5 +203,19 @@ def load_data(
 
         df.to_parquet(cache_path,index=False)
 
-
     return df
+
+def load_live_projects_comments(ligne_par_commentaire=True) :
+    '''
+    tout est dans son nom :)
+    charge les commentaires (unitaires ou regroupés) des projets live pour test
+    '''
+    df = load_merged_raw_data(
+        ligne_par_commentaire=ligne_par_commentaire,
+        filterLive=False
+    )
+    # uniquement les project live :
+    df = df[df['y']=='live']
+    # cleaning :
+    df['X_cleaned'] = df['X'].apply(cleaning_sentence)
+    return df.reset_index()
