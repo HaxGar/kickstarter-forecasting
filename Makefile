@@ -41,3 +41,6 @@ preprocess_all_versions:
 
 install:
 	pip install -e .
+
+test:
+	@echo ${DATA_DIR}
