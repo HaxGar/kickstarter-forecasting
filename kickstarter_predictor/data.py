@@ -17,7 +17,7 @@ stop_words = set(stopwords.words('english')) ## define stopw
 lemmatizer = WordNetLemmatizer()
 
 ## row data, private funcions :
-def load_raw_projects(filterLive=True)->pd.DataFrame:
+def load_raw_projects(filterLive)->pd.DataFrame:
     '''
     read the raw csv of projects
     without state=='live' if filterLive=True,
@@ -46,14 +46,14 @@ def load_raw_commentaires()->pd.DataFrame:
 
     return df_comments
 
-def load_merged_raw_data(ligne_par_commentaire:bool)->pd.DataFrame:
+def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.DataFrame:
     '''
     merge the two df : comments and projects
     ligne par ligne si ligne_par_ligne==True,
     sinon par projet
     '''
     df_comments = load_raw_commentaires()
-    df_projects = load_raw_projects()
+    df_projects = load_raw_projects(filterLive)
 
     df_merged = (
         df_comments.merge(
@@ -147,7 +147,7 @@ def cleaning_sentence(
         return ' '.join(word for word in clean_word)
     else:
         return clean_word
-    return clean_word
+
 
 ## callable functions
 def load_data(
@@ -165,26 +165,32 @@ def load_data(
         - avec ou sans stop words (remove_stop_words: True || False)
         - avec ou sans lemmatization (lemmatize: True || False)
     '''
+    print("load_data")
     #1) load merged data from cache ou de raw
-    if ligne_par_commentaire : scenario = 'par_commentaire'
-    else : scenario = 'par_projet'
+    if ligne_par_commentaire :
+        scenario = 'par_commentaire'
+    else :
+        scenario = 'par_projet'
 
     filename = 'merged_data'
 
     # ponctuation
-    if remove_ponctuation : filename += '_sans_ponctuation'
+    if remove_ponctuation :
+        filename += '_sans_ponctuation'
 
     # stop words
-    if remove_stop_words : filename += '_sans_stop_words'
+    if remove_stop_words :
+        filename += '_sans_stop_words'
 
     # lemmatized
-    if remove_stop_words : filename += "_lemmatized"
+    if lemmatize :
+        filename += '_lemmatized'
 
-    filename += ".csv"
+    filename += ".parquet"
     cache_path = Path(LOCAL_DATA_PATH).joinpath('processed', scenario, filename)
 
     if cache_path.is_file():
-        df = pd.read_csv(cache_path)
+        df = pd.read_parquet(cache_path)
     else :
         df = load_merged_raw_data(ligne_par_commentaire)
         # cleaning :
@@ -194,6 +200,8 @@ def load_data(
             remove_stop_words=remove_stop_words,
             lemmatize=lemmatize
         )
-        df.to_csv(cache_path)
 
-    return df.dropna()
+        df.to_parquet(cache_path,index=False)
+
+
+    return df
