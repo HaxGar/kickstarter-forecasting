@@ -12,7 +12,8 @@ description = "kickstartup_forecasting Model"
 dependencies = [
     "nltk",
     "scikit-learn",     # Machine learning
-    "python-dotenv"
+    "python-dotenv",
+    "pyarrow"
 ]
 
 [tool.setuptools.packages.find]
