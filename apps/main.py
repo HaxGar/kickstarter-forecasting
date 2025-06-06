@@ -4,6 +4,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import recall_score
+import langid
 
 cleaned_comments = data.load_data(
     # ligne_par_ligne=True,
@@ -13,6 +14,12 @@ cleaned_comments = data.load_data(
 )#.iloc[:10000]
 X = cleaned_comments['X']
 y = cleaned_comments['y']
+
+# Vérifie les langues détectées dans X
+languages_detected = X.apply(lambda x: langid.classify(x)[0])
+
+# Affiche les langues uniques détectées
+print("Langues détectées :", languages_detected.unique())
 
 pipeline_naive_bayes = make_pipeline(
     TfidfVectorizer(),
