@@ -79,7 +79,7 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
             df_projects[['id', 'state']]
         )
     )
-    df_merged = df_merged.head(50) #pour charger plus vite
+    #df_merged = df_merged.head(50) #pour charger plus vite
     df_merged = df_merged.explode('commentaires').reset_index(drop=True)
 
        # appliquer langid après explode (sur chaque commentaire)
@@ -265,7 +265,7 @@ def load_data(
         print(f"{before_duplicate - after_duplicate} commentaires supprimés car possède dupplicate")
         df.to_parquet(cache_path,index=False)
 
-    print("--------🔄 Sortie de la fonction load_data--------")
+    print(f"--------🔄 Sortie de la fonction load_data-------- df.length : {len(df)}")
     return df
 
 def load_live_projects_comments(ligne_par_commentaire=True) :
