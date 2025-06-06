@@ -79,7 +79,7 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
             df_projects[['id', 'state']]
         )
     )
-    df_merged = df_merged.head(500) #pour charger plus vite
+    df_merged = df_merged.head(50) #pour charger plus vite
     df_merged = df_merged.explode('commentaires').reset_index(drop=True)
 
        # appliquer langid après explode (sur chaque commentaire)
@@ -122,8 +122,13 @@ def removing_ponctuation(sentence:str)->str:
 
     for punctuation in string.punctuation:
         sentence = sentence.replace(punctuation, '') ## remove punctuation
+    # Séparer en mots
+    words = sentence.split()
 
-    return sentence
+    # Garder seulement les mots alphanumériques (lettres et chiffres)
+    cleaned_words = [w for w in words if re.fullmatch(r'[a-zA-Z0-9]+', w)] # re.fullmatch(r'[a-zA-ZÀ-ÿ0-9]+', w) si on veut garder accents etc...
+
+    return ' '.join(cleaned_words)
 
 def removing_stop_words(tokenized_sentence:list)->list:
 
@@ -133,8 +138,7 @@ def removing_stop_words(tokenized_sentence:list)->list:
 
 
     tokenized_sentence_cleaned = [
-        w for w in tokenized_sentence
-        if (w not in stop_words) and re.fullmatch(r'[a-zA-Z0-9]+', w) # re.fullmatch(r'[a-zA-ZÀ-ÿ0-9]+', w) si on veut garder accents etc...
+        w for w in tokenized_sentence if (w not in stop_words)
     ]
 
 
