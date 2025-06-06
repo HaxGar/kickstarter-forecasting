@@ -28,3 +28,11 @@ cv_results = cross_validate(
 # average_recall = cv_results["test_recall"].mean()
 # results = average_recall
 print(cv_results)
+
+# return the best model
+model = cv_results.best_estimator_
+metrics = grid_search.best_score_
+params = None
+
+# sauvegarder le model
+save_full_registry(model, 'multinomialNB', None, metrics)

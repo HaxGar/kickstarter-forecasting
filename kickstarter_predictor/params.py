@@ -6,3 +6,5 @@ load_dotenv()
 PROJECT_ROOT = os.environ.get('ROOT')
 
 LOCAL_DATA_PATH = os.path.join(PROJECT_ROOT, 'data')
+
+MODEL_TARGET = os.getenv('MODEL_TARGET', 'local')  # default to 'local'
