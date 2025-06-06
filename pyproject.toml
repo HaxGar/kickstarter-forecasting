@@ -15,8 +15,7 @@ dependencies = [
     "python-dotenv",
     "pyarrow",
     "langid",
-    "beautifulsoup4",
-    "selenium"
+    "fastapi[standard]"
 ]
 
 [tool.setuptools.packages.find]
