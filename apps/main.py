@@ -15,11 +15,6 @@ cleaned_comments = data.load_data(
 X = cleaned_comments['X']
 y = cleaned_comments['y']
 
-# Vérifie les langues détectées dans X
-languages_detected = X.apply(lambda x: langid.classify(x)[0])
-
-# Affiche les langues uniques détectées
-print("Langues détectées :", languages_detected.unique())
 
 pipeline_naive_bayes = make_pipeline(
     TfidfVectorizer(),

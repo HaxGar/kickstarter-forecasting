@@ -74,30 +74,35 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
     print("--------🔄 Entrée dans la fonction load_merged_raw_data--------")
     df_comments = load_raw_commentaires()
     df_projects = load_raw_projects(filterLive)
-
     df_merged = (
         df_comments.merge(
             df_projects[['id', 'state']]
         )
     )
+    df_merged = df_merged.head(500) #pour charger plus vite
+    df_merged = df_merged.explode('commentaires').reset_index(drop=True)
+
+       # appliquer langid après explode (sur chaque commentaire)
     before = len(df_merged)
-    df_merged['commentaires'] = df_merged['commentaires'].apply(keep_only_english_comments)
-
-    # Supprime les lignes sans commentaires restants (liste vide)
-    df_merged = df_merged[df_merged['commentaires'].map(len) > 0]
-
+    df_merged = df_merged[df_merged['commentaires'].apply(lambda c: langid.classify(c)[0] == 'en')]
     after = len(df_merged)
-
-    print(f" delete {before - after} projets supprimés car aucun commentaire en anglais")
+    print(f"{before - after} commentaires supprimés car non-anglais")
     if ligne_par_commentaire :
-        df_merged = df_merged.explode('commentaires').reset_index(drop=True)
-        # df_merged = df_merged[df_merged['commentaires'].apply(lambda c: langid.classify(c)[0] == 'en')] si le non ligne par commentaire ne focntionne pas
+        df_result=df_merged
+
     else :
-        df_merged['commentaires'] = df_merged['commentaires'].apply(
+        # Regrouper par projet : on refait une liste des commentaires
+        df_result = (
+            df_merged
+            .groupby(['id', 'state'])['commentaires']
+            .apply(list)
+            .reset_index()
+        )
+        df_result['commentaires'] = df_result['commentaires'].apply(
             lambda x: '; '.join(x)
         )
     print("--------🔄 Sortie de la fonction load_merged_raw_data--------")
-    return df_merged.rename(columns={"commentaires": "X", 'state':'y'})
+    return df_result.rename(columns={"commentaires": "X", 'state':'y'})
 
 def basic_cleaning(sentence:str)->str:
     '''
@@ -170,7 +175,7 @@ def cleaning_sentence(
     - lemmatisation (optionnelle) (ex: "running" devient "run")
     Retourne la phrase nettoyée sous forme de string.
     '''
-    print("--------🔄 Entrée dans la fonction cleaning_sentence--------")
+
     clean_word = basic_cleaning(comment)
 
     if remove_ponctuation:
@@ -183,7 +188,7 @@ def cleaning_sentence(
     if lemmatize:
         clean_word=lemmatizing(clean_word)
 
-    print("--------🔄 Sortie de la fonction cleaning_sentence--------")
+
     if isinstance(clean_word, list):
         return ' '.join(word for word in clean_word)
     else:
@@ -235,6 +240,10 @@ def load_data(
         df = pd.read_parquet(cache_path)
     else :
         df = load_merged_raw_data(ligne_par_commentaire)
+
+        # #supprime les lignes qui ne sont aps de string
+        # df = df[df['X'].apply(lambda x: isinstance(x, str))]
+
         # cleaning :
         df['X'] = df['X'].apply(
             cleaning_sentence,
@@ -242,9 +251,16 @@ def load_data(
             remove_stop_words=remove_stop_words,
             lemmatize=lemmatize
         )
-
+        before_nan = len(df)
+        df = df.dropna(subset=['X'])
+        after_nan = len(df)
+        print(f"{before_nan - after_nan} commentaires supprimés car possède nan")
+        before_duplicate = len(df)
+        df = df.drop_duplicates(subset=['X'])
+        after_duplicate = len(df)
+        print(f"{before_duplicate - after_duplicate} commentaires supprimés car possède dupplicate")
         df.to_parquet(cache_path,index=False)
-    df = df[df['X'].apply(lambda x: langid.classify(x)[0]) == 'en']
+
     print("--------🔄 Sortie de la fonction load_data--------")
     return df
 
