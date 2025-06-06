@@ -14,7 +14,8 @@ dependencies = [
     "scikit-learn",     # Machine learning
     "python-dotenv",
     "pyarrow",
-    "langid"
+    "langid",
+    "fastapi[standard]"
 ]
 
 [tool.setuptools.packages.find]
