@@ -13,7 +13,8 @@ dependencies = [
     "nltk",
     "scikit-learn",     # Machine learning
     "python-dotenv",
-    "pyarrow"
+    "pyarrow",
+    "langid"
 ]
 
 [tool.setuptools.packages.find]

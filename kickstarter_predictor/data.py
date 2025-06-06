@@ -7,6 +7,7 @@ from kickstarter_predictor.params import *
 
 #cleaning
 import string
+import langid
 import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -23,13 +24,14 @@ def load_raw_projects(filterLive)->pd.DataFrame:
     without state=='live' if filterLive=True,
     prepare for the merge ('ID' renamed to 'id')
     '''
+    print("--------🔄 Entrée dans la fonction load_raw_projects--------")
     path = Path(LOCAL_DATA_PATH).joinpath('raw', "ks-projects-201801.csv")
     df_projects = pd.read_csv(path)
     df_projects.rename(columns={'ID':'id'}, inplace=True)
     if filterLive :
         df_projects = df_projects[df_projects['state']!='live']
         df_projects['state'] = df_projects['state'].apply(lambda x: 1 if x == 'successful' else 0)
-
+    print("--------🔄 Sortie de la fonction load_raw_projects--------")
     return df_projects
 
 def load_raw_commentaires()->pd.DataFrame:
@@ -37,6 +39,8 @@ def load_raw_commentaires()->pd.DataFrame:
     read the raw csv of comments
     by filtering out the empty coments
     '''
+    print("--------🔄 Entrée dans la fonction load_raw_commentaires--------")
+
     path = Path(LOCAL_DATA_PATH).joinpath('raw', "comments_clean.csv")
     df_comments = pd.read_csv(path)
     df_comments = df_comments[df_comments['comments']!='[]']
@@ -44,7 +48,22 @@ def load_raw_commentaires()->pd.DataFrame:
     df_comments['commentaires'] = df_comments['comments'].apply(ast.literal_eval)
     df_comments.drop(columns=['comments'], inplace=True)
 
+    print("--------🔄 Sortie de la fonction load_raw_commentaires--------")
     return df_comments
+
+def keep_only_english_comments(comments_list:str)->str:
+
+    '''
+    Filtre une liste de commentaires pour ne conserver que ceux en anglais.
+    Utilise la librairie langid pour détecter la langue de chaque commentaire.
+
+    comments_list : une liste de chaînes de commentaire
+    '''
+
+    filtered = [c for c in comments_list if langid.classify(c)[0] == 'en']
+    # Return une nouvelle liste contenant uniquement les commentaires en anglais
+    return filtered
+
 
 def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.DataFrame:
     '''
@@ -52,23 +71,38 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
     ligne par ligne si ligne_par_ligne==True,
     sinon par projet
     '''
+    print("--------🔄 Entrée dans la fonction load_merged_raw_data--------")
     df_comments = load_raw_commentaires()
     df_projects = load_raw_projects(filterLive)
-
     df_merged = (
         df_comments.merge(
             df_projects[['id', 'state']]
         )
     )
+    df_merged = df_merged.head(500) #pour charger plus vite
+    df_merged = df_merged.explode('commentaires').reset_index(drop=True)
 
+       # appliquer langid après explode (sur chaque commentaire)
+    before = len(df_merged)
+    df_merged = df_merged[df_merged['commentaires'].apply(lambda c: langid.classify(c)[0] == 'en')]
+    after = len(df_merged)
+    print(f"{before - after} commentaires supprimés car non-anglais")
     if ligne_par_commentaire :
-        df_merged = df_merged.explode('commentaires').reset_index(drop=True)
+        df_result=df_merged
+
     else :
-        df_merged['commentaires'] = df_merged['commentaires'].apply(
+        # Regrouper par projet : on refait une liste des commentaires
+        df_result = (
+            df_merged
+            .groupby(['id', 'state'])['commentaires']
+            .apply(list)
+            .reset_index()
+        )
+        df_result['commentaires'] = df_result['commentaires'].apply(
             lambda x: '; '.join(x)
         )
-
-    return df_merged.rename(columns={"commentaires": "X", 'state':'y'})
+    print("--------🔄 Sortie de la fonction load_merged_raw_data--------")
+    return df_result.rename(columns={"commentaires": "X", 'state':'y'})
 
 def basic_cleaning(sentence:str)->str:
     '''
@@ -77,32 +111,41 @@ def basic_cleaning(sentence:str)->str:
     - met en minuscules
     - supprime les chiffres et la ponctuation
     '''
+
     sentence = sentence.strip() ## remove whitespaces
-    sentence = sentence.lower() ## lowercase
-    sentence = ''.join(char for char in sentence if not char.isdigit()) ## remove numbers
+    sentence = sentence.lower() ## lowercasesentence = ''.join(char for char in sentence if not char.isdigit()) ## remove numbers
+
     return sentence
 
 ## cleaning options :
 def removing_ponctuation(sentence:str)->str:
+
     for punctuation in string.punctuation:
         sentence = sentence.replace(punctuation, '') ## remove punctuation
+
     return sentence
 
 def removing_stop_words(tokenized_sentence:list)->list:
 
     '''
-    Supprime les stopwords et les mots qui ne sont pas composés uniquement de lettres (avec accents) et chiffres.
+    Supprime les stopwords et les mots qui ne sont pas composés uniquement de lettres et chiffres.
     '''
+
+
     tokenized_sentence_cleaned = [
         w for w in tokenized_sentence
-        if (w not in stop_words) and re.fullmatch(r'[a-zA-ZÀ-ÿ0-9]+', w)
+        if (w not in stop_words) and re.fullmatch(r'[a-zA-Z0-9]+', w) # re.fullmatch(r'[a-zA-ZÀ-ÿ0-9]+', w) si on veut garder accents etc...
     ]
+
+
+
     return tokenized_sentence_cleaned
 
 def lemmatizing(tokenized_sentence_cleaned:list)->list:
     '''
     Lemmatisation des mots d'abord comme verbes, puis comme noms
     '''
+
     # Étape 1 : lemmatisation comme verbes
     verb_lemmatized = [
         lemmatizer.lemmatize(word, pos="v")
@@ -114,6 +157,7 @@ def lemmatizing(tokenized_sentence_cleaned:list)->list:
         lemmatizer.lemmatize(word, pos="n")
         for word in verb_lemmatized
     ]
+
 
     return noun_lemmatized
 
@@ -131,6 +175,7 @@ def cleaning_sentence(
     - lemmatisation (optionnelle) (ex: "running" devient "run")
     Retourne la phrase nettoyée sous forme de string.
     '''
+
     clean_word = basic_cleaning(comment)
 
     if remove_ponctuation:
@@ -142,6 +187,7 @@ def cleaning_sentence(
 
     if lemmatize:
         clean_word=lemmatizing(clean_word)
+
 
     if isinstance(clean_word, list):
         return ' '.join(word for word in clean_word)
@@ -165,6 +211,7 @@ def load_data(
         - avec ou sans stop words (remove_stop_words: True || False)
         - avec ou sans lemmatization (lemmatize: True || False)
     '''
+    print("--------🔄 Entrée dans la fonction load_data--------")
     #print("load_data")
     #1) load merged data from cache ou de raw
     if ligne_par_commentaire :
@@ -193,6 +240,10 @@ def load_data(
         df = pd.read_parquet(cache_path)
     else :
         df = load_merged_raw_data(ligne_par_commentaire)
+
+        # #supprime les lignes qui ne sont aps de string
+        # df = df[df['X'].apply(lambda x: isinstance(x, str))]
+
         # cleaning :
         df['X'] = df['X'].apply(
             cleaning_sentence,
@@ -200,9 +251,17 @@ def load_data(
             remove_stop_words=remove_stop_words,
             lemmatize=lemmatize
         )
-
+        before_nan = len(df)
+        df = df.dropna(subset=['X'])
+        after_nan = len(df)
+        print(f"{before_nan - after_nan} commentaires supprimés car possède nan")
+        before_duplicate = len(df)
+        df = df.drop_duplicates(subset=['X'])
+        after_duplicate = len(df)
+        print(f"{before_duplicate - after_duplicate} commentaires supprimés car possède dupplicate")
         df.to_parquet(cache_path,index=False)
 
+    print("--------🔄 Sortie de la fonction load_data--------")
     return df
 
 def load_live_projects_comments(ligne_par_commentaire=True) :
@@ -210,6 +269,7 @@ def load_live_projects_comments(ligne_par_commentaire=True) :
     tout est dans son nom :)
     charge les commentaires (unitaires ou regroupés) des projets live pour test
     '''
+    print("--------🔄 Entrée dans la fonction load_live_projects_comments--------")
     df = load_merged_raw_data(
         ligne_par_commentaire=ligne_par_commentaire,
         filterLive=False
@@ -218,4 +278,5 @@ def load_live_projects_comments(ligne_par_commentaire=True) :
     df = df[df['y']=='live']
     # cleaning :
     df['X_cleaned'] = df['X'].apply(cleaning_sentence)
+    print("--------🔄 Sortie de la fonction load_live_projects_comments--------")
     return df.reset_index()
