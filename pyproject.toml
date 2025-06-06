@@ -14,7 +14,9 @@ dependencies = [
     "scikit-learn",     # Machine learning
     "python-dotenv",
     "pyarrow",
-    "langid"
+    "langid",
+    "beautifulsoup4",
+    "selenium"
 ]
 
 [tool.setuptools.packages.find]
