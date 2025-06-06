@@ -15,7 +15,7 @@ dependencies = [
     "python-dotenv",
     "pyarrow",
     "langid",
-    "fastapi[standard]"
+    "fastapi[standard]",
 ]
 
 [tool.setuptools.packages.find]
