@@ -1,6 +1,8 @@
 # New files / folders
 data/
 notebook/
+*.csv
+*.parquet
 .DS_Store
 test.ipynb
 
