@@ -9,7 +9,7 @@ app = FastAPI()
 def predict_api(kickstarterurl : str, comment_type : str):
 
     # 1/ Charger les données + cleaning
-        # à partir d'une url kickstarter > besoin de scrapper / pending Adrien
+        # à partir d'une url kickstarter > besoin de scrapper / pending Adrien/Anatole
 
         # à partir des datasets dispo > remonter les campagnes avec label = live + cleaning data
     df = load_live_projects_comments(ligne_par_commentaire=True)
