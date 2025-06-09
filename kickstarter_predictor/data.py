@@ -307,3 +307,7 @@ def load_live_projects_comments(ligne_par_commentaire=True) :
         print("--------🔄 Sortie de la fonction load_live_projects_comments--------")
 
     return df
+
+
+# if __name__=='__main__':
+#     load_data()
