@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from kickstarter_predictor.registry import load_model
-from sklearn.model_selection import train_test_split
-from kickstarter_predictor.train_test import load_or_create_split
-from kickstarter_predictor.data import cleaning_sentence
+from kickstarter_predictor.data import cleaning_sentence, load_merged_raw_data, load_live_projects_comments
 
 app = FastAPI()
 # model = load_model() # à ajouter lorsque que le modèle sera live
@@ -10,14 +8,14 @@ app = FastAPI()
 @app.get("/predict")
 def predict_api(kickstarterurl : str, comment_type : str):
 
-    # charger les données à partir d'une url kickstarter
-    X_test, y_test = load_or_create_split(file='test')
+    # 1/ Charger les données + cleaning
+        # à partir d'une url kickstarter > besoin de scrapper / pending Adrien
 
-    # preprocesser la donnée
-    clean_test = cleaning_sentence(X_test.head(1))
+        # à partir des datasets dispo > remonter les campagnes avec label = live + cleaning data
+    df = load_live_projects_comments(ligne_par_commentaire=True)
+    X_test = df['X']
 
-
-    # predict success or failure
+    # 2/ Predict success or failure
     # result = model.predict(clean_test)
 
     return {"Hello": kickstarterurl, "result": {
