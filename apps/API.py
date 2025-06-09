@@ -3,10 +3,11 @@ from kickstarter_predictor.registry import load_model
 from kickstarter_predictor.data import cleaning_sentence, load_merged_raw_data, load_live_projects_comments
 
 app = FastAPI()
-# model = load_model() # à ajouter lorsque que le modèle sera live
+model_info = load_model()
+model = model_info['model']
 
 @app.get("/predict")
-def predict_api(kickstarterurl : str, comment_type : str):
+def predict_api(commentaires : str):
 
     # 1/ Charger les données + cleaning
         # à partir d'une url kickstarter > besoin de scrapper / pending Adrien/Anatole
@@ -16,9 +17,9 @@ def predict_api(kickstarterurl : str, comment_type : str):
     X_test = df['X']
 
     # 2/ Predict success or failure
-    # result = model.predict(clean_test)
+    result = model.predict(X_test)
+    result_proba = model.predict_proba(X_test)
 
-    return {"Hello": kickstarterurl, "result": {
-        "status" : "success",
-        "score de confiance" : 0.6
-    }}
+    return {"Commentaires": commentaires, "result": result,
+        "result_proba": result_proba
+    }
