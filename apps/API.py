@@ -25,7 +25,6 @@ def predict_api(commentaires : str):
     result = main.pred(df=df.head(1), model_name=model_name)
 
     # Aggregate results
-    y_pred = result['y_pred']
     y_pred_proba = result['y_pred_proba']
 
     message = (
@@ -38,4 +37,7 @@ def predict_api(commentaires : str):
     "prediction": int(y_pred),
     "probability_of_success": round(float(y_pred_proba), 4),
     "message": message
-    }
+
+    # 2/ Predict success or failure
+    result = model.predict(X_test)
+    result_proba = model.predict_proba(X_test)
