@@ -1,65 +1,49 @@
-import datetime as dt
 import streamlit as st
+import datetime as dt
 
+# ===============================
+# Configuration des onglets visibles
+# ===============================
+# Variables de contrôle pour activer/désactiver les onglets
+show_info_prediction_tab = False  # Onglet "Prévision à partir des informations du projet"
+show_link_prediction_tab = True   # Onglet "Prévision à partir d'un lien Kickstarter"
+show_sample_project_tab = True    # Onglet "Sélection d'un projet exemple"
+
+# ===============================
+# Interface Streamlit
+# ===============================
 st.title("Kickstarter Predictor")
 
-# Variable booléenne pour contrôler l'affichage de l'onglet de prévision par informations
-show_info_prediction = False  # Mettre à True pour réactiver cet onglet
-
-# Dictionnaire de projets exemples
-sample_projects = {
-    "Projet Tech 1": {"id":"1153426630" ,"name":"GUITAR-JO 2.0 - Make Your Electric Guitar","state":"success","url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
-    "Projet Jeu 2": {"id":"1053513419" ,"name":"Charggee: A New Way to Charge. Protect Your Mo","state":"success","url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d?ref=nav_search&result=project&term=Charggee%3A%20A%20New%20Way%20to%20Charge&total_hits=1"},
-    "Projet Art 3": {"id":"100411349" ,"name":"E Coin Mining and Rig-Building Workshop","state":"fail","url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
-    "Projet Art 4": {"id":"1073099678" ,"name":"Pill Swallowing Device","state":"fail","url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
-}
-
-# Fonction pour simuler l'appel à l'API (sans importation)
-def call_predict_api(url, comment_type):
-    # Cette fonction simule l'appel à l'API
-    # Plus tard, vous pourrez la remplacer par un vrai appel à une API HTTP
-    # Par exemple avec: import requests puis requests.get(...)
-    return {
-        "status": "success",
-        "score de confiance": 0.6,
-        "probability": 0.6
-    }
-
-# Options pour le menu latéral
+# Construction dynamique du menu latéral en fonction des variables de contrôle
 sidebar_options = []
-if show_info_prediction:
+
+if show_info_prediction_tab:
     sidebar_options.append("Prévision à partir des informations du projet")
-sidebar_options.extend([
-    "Prévision à partir d'un lien Kickstarter",
-    "Sélection d'un projet exemple"
-])
+if show_link_prediction_tab:
+    sidebar_options.append("Prévision à partir d'un lien Kickstarter")
+if show_sample_project_tab:
+    sidebar_options.append("Sélection d'un projet exemple")
 
-mode = st.sidebar.radio(
-    "Choisissez une option",
-    tuple(sidebar_options)
-)
+# Afficher le menu uniquement s'il y a au moins une option
+if sidebar_options:
+    mode = st.sidebar.radio("Choisissez une option", tuple(sidebar_options))
+else:
+    st.warning("Aucun onglet n'est actuellement activé. Veuillez modifier les variables de configuration.")
+    mode = None
 
-if show_info_prediction and mode == "Prévision à partir des informations du projet":
+# ===============================
+# Contenu des onglets
+# ===============================
+
+# Onglet 1 : Prévision à partir des informations du projet
+if show_info_prediction_tab and mode == "Prévision à partir des informations du projet":
     st.header("Prévision du montant cagnotté")
-    name = st.text_input("Nom du projet")
-    deadline = st.date_input("Deadline", dt.date.today())
-    duration = st.number_input("Durée de campagne (jours)", min_value=1, step=1)
-    category = st.text_input("Thème ou catégorie")
+    st.write("Cette fonctionnalité est en cours de développement...")
 
-    if st.button("Mettre à jour la prédiction"):
-        if not name or not category:
-            st.warning("Veuillez remplir tous les champs requis.")
-        else:
-            result = 'test'#predict_target(
-                #name=name,
-                #deadline=deadline.isoformat(),
-                #duration=int(duration),
-                #category=category,
-            #)
-            amount = result.get("amount")
-            st.success(f"Montant recommandé : {amount} euros")
+    # Contenu vide pour l'instant, à compléter plus tard
 
-elif mode == "Prévision à partir d'un lien Kickstarter":
+# Onglet 2 : Prévision à partir d'un lien Kickstarter
+elif show_link_prediction_tab and mode == "Prévision à partir d'un lien Kickstarter":
     st.header("Prévision à partir d'un lien Kickstarter")
     url = st.text_input("Lien du projet Kickstarter")
     comment_type = st.selectbox("Type de commentaires à analyser", ["all", "positifs", "négatifs"])
@@ -68,14 +52,22 @@ elif mode == "Prévision à partir d'un lien Kickstarter":
         if not url:
             st.warning("Veuillez fournir un lien")
         else:
-            # Appel à l'API qui n'est pas opérationnelle pour l'instant
             with st.spinner("Analyse en cours..."):
-                result = call_predict_api(url, comment_type)
-                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
-                st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
+                # Simulation de résultat pour l'instant
+                st.success(f"Probabilité de réussite : {60}%")
+                st.info("Note: L'API n'est pas encore opérationnelle.")
 
-elif mode == "Sélection d'un projet exemple":
+# Onglet 3 : Sélection d'un projet exemple
+elif show_sample_project_tab and mode == "Sélection d'un projet exemple":
     st.header("Prévision à partir d'un projet exemple")
+
+    # Dictionnaire de projets exemples
+    sample_projects = {
+        "Projet Tech 1": {"id":"1153426630", "name":"GUITAR-JO 2.0 - Make Your Electric Guitar", "state":"success", "url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
+        "Projet Jeu 2": {"id":"1053513419", "name":"Charggee: A New Way to Charge", "state":"success", "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"},
+        "Projet Art 3": {"id":"100411349", "name":"E Coin Mining and Rig-Building Workshop", "state":"fail", "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
+        "Projet Art 4": {"id":"1073099678", "name":"Pill Swallowing Device", "state":"fail", "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
+    }
 
     selected_project = st.selectbox(
         "Sélectionnez un projet",
@@ -90,9 +82,8 @@ elif mode == "Sélection d'un projet exemple":
 
         if st.button("Analyser ce projet"):
             with st.spinner("Analyse en cours..."):
-                # Appel à l'API avec les données du projet sélectionné
-                result = call_predict_api(project_data['url'], "all")
+                # Simulation de résultat pour l'instant
                 st.write("Résultat de l'analyse: ")
                 st.write("Projet: " + selected_project)
-                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
-                st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
+                st.success(f"Probabilité de réussite : {60}%")
+                st.info("Note: L'API n'est pas encore opérationnelle.")
