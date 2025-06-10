@@ -1,7 +1,5 @@
 import datetime as dt
 import streamlit as st
-import requests
-import json
 
 st.title("Kickstarter Predictor")
 
@@ -16,11 +14,11 @@ sample_projects = {
     "Projet Art 4": {"id":"1073099678" ,"name":"Pill Swallowing Device","state":"fail","url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
 }
 
-# Fonction pour remplacer l'importation de predict_api
+# Fonction pour simuler l'appel à l'API (sans importation)
 def call_predict_api(url, comment_type):
     # Cette fonction simule l'appel à l'API
-    # Plus tard, vous pourrez la remplacer par un vrai appel API
-    # Par exemple: requests.get(f"http://localhost:8000/predict?kickstarterurl={url}&comment_type={comment_type}")
+    # Plus tard, vous pourrez la remplacer par un vrai appel à une API HTTP
+    # Par exemple avec: import requests puis requests.get(...)
     return {
         "status": "success",
         "score de confiance": 0.6,
