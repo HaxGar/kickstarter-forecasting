@@ -1,7 +1,7 @@
 import datetime as dt
 import streamlit as st
-
-from API import predict_api
+import requests
+import json
 
 st.title("Kickstarter Predictor")
 
@@ -10,10 +10,22 @@ show_info_prediction = False  # Mettre à True pour réactiver cet onglet
 
 # Dictionnaire de projets exemples
 sample_projects = {
-    "Projet Tech 1": {"url": "https://www.kickstarter.com/projects/sample/tech-project-1", "comment_type": "all"},
-    "Projet Jeu 2": {"url": "https://www.kickstarter.com/projects/sample/game-project-2", "comment_type": "all"},
-    "Projet Art 3": {"url": "https://www.kickstarter.com/projects/sample/art-project-3", "comment_type": "all"},
+    "Projet Tech 1": {"id":"1153426630" ,"name":"GUITAR-JO 2.0 - Make Your Electric Guitar","state":"success","url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
+    "Projet Jeu 2": {"id":"1053513419" ,"name":"Charggee: A New Way to Charge. Protect Your Mo","state":"success","url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d?ref=nav_search&result=project&term=Charggee%3A%20A%20New%20Way%20to%20Charge&total_hits=1"},
+    "Projet Art 3": {"id":"100411349" ,"name":"E Coin Mining and Rig-Building Workshop","state":"fail","url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
+    "Projet Art 4": {"id":"1073099678" ,"name":"Pill Swallowing Device","state":"fail","url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
 }
+
+# Fonction pour remplacer l'importation de predict_api
+def call_predict_api(url, comment_type):
+    # Cette fonction simule l'appel à l'API
+    # Plus tard, vous pourrez la remplacer par un vrai appel API
+    # Par exemple: requests.get(f"http://localhost:8000/predict?kickstarterurl={url}&comment_type={comment_type}")
+    return {
+        "status": "success",
+        "score de confiance": 0.6,
+        "probability": 0.6
+    }
 
 # Options pour le menu latéral
 sidebar_options = []
@@ -60,8 +72,8 @@ elif mode == "Prévision à partir d'un lien Kickstarter":
         else:
             # Appel à l'API qui n'est pas opérationnelle pour l'instant
             with st.spinner("Analyse en cours..."):
-                result = 'test2' #predict_api(url, comment_type)
-                prob = 10 #result.get("probability")
+                result = call_predict_api(url, comment_type)
+                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
                 st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
 
 elif mode == "Sélection d'un projet exemple":
@@ -74,13 +86,15 @@ elif mode == "Sélection d'un projet exemple":
 
     if selected_project:
         project_data = sample_projects[selected_project]
+        st.write(f"Nom: {project_data['name']}")
         st.write(f"URL: {project_data['url']}")
+        st.write(f"État actuel: {project_data['state']}")
 
         if st.button("Analyser ce projet"):
             with st.spinner("Analyse en cours..."):
-                # Appel à l'API qui n'est pas opérationnelle pour l'instant
-                result = 'test2' #predict_api(project_data['url'], project_data['comment_type'])
+                # Appel à l'API avec les données du projet sélectionné
+                result = call_predict_api(project_data['url'], "all")
                 st.write("Résultat de l'analyse: ")
                 st.write("Projet: " + selected_project)
-                prob = 10 #result.get("probability")
+                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
                 st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
