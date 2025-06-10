@@ -7,7 +7,7 @@ import pickle
 
 from sklearn.naive_bayes import MultinomialNB
 # from tensorflow import keras
-# from google.cloud import storage
+#from google.cloud import storage
 
 from kickstarter_predictor.params import *
 
