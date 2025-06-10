@@ -16,7 +16,7 @@ model = model_info['model']
 
 
 @app.get("/predict_par_titre")
-def predict_par_titre(titre_du_projet : str) -> dict :
+def predict_par_titre(titre_du_projet : str = 'The REEL THING - Fishing Gun / Grab Your Gun and GO!!!') -> dict :
     # p. e. : 'The REEL THING - Fishing Gun / Grab Your Gun and GO!!!'
     # on pourrait le faire avec index du projet aussi
 
@@ -54,7 +54,7 @@ def predict_par_titre(titre_du_projet : str) -> dict :
 
 
 @app.get("/predict_par_id")
-def predict_par_id(id_projet : str) -> dict :
+def predict_par_id(id_projet : str = '1376423') -> dict :
     #p.e.: id_projet = 1376423
     id_projet = int(id_projet)
     # 1/a Load data from kickstarter url
