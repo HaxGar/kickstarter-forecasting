@@ -1,98 +1,145 @@
 import datetime as dt
 import streamlit as st
 
+#from api import predict_target, predict_success
+
+
 st.title("Kickstarter Predictor")
 
-# Variable booléenne pour contrôler l'affichage de l'onglet de prévision par informations
-show_info_prediction = False  # Mettre à True pour réactiver cet onglet
+# Boolean variable to control the display of "Prediction from project information" tab
+show_info_prediction_tab = False  # Set to True to reactivate this tab
 
-# Dictionnaire de projets exemples
-sample_projects = {
-    "Projet Tech 1": {"id":"1153426630" ,"name":"GUITAR-JO 2.0 - Make Your Electric Guitar","state":"success","url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
-    "Projet Jeu 2": {"id":"1053513419" ,"name":"Charggee: A New Way to Charge. Protect Your Mo","state":"success","url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d?ref=nav_search&result=project&term=Charggee%3A%20A%20New%20Way%20to%20Charge&total_hits=1"},
-    "Projet Art 3": {"id":"100411349" ,"name":"E Coin Mining and Rig-Building Workshop","state":"fail","url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
-    "Projet Art 4": {"id":"1073099678" ,"name":"Pill Swallowing Device","state":"fail","url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
-}
-
-# Fonction pour simuler l'appel à l'API (sans importation)
-def call_predict_api(url, comment_type):
-    # Cette fonction simule l'appel à l'API
-    # Plus tard, vous pourrez la remplacer par un vrai appel à une API HTTP
-    # Par exemple avec: import requests puis requests.get(...)
-    return {
-        "status": "success",
-        "score de confiance": 0.6,
-        "probability": 0.6
-    }
-
-# Options pour le menu latéral
-sidebar_options = []
-if show_info_prediction:
-    sidebar_options.append("Prévision à partir des informations du projet")
-sidebar_options.extend([
-    "Prévision à partir d'un lien Kickstarter",
-    "Sélection d'un projet exemple"
-])
+# Options for the sidebar menu
+sidebar_options = [
+    "Select a project",
+    "Enter a URL"
+]
 
 mode = st.sidebar.radio(
-    "Choisissez une option",
+    "Choose an option",
     tuple(sidebar_options)
 )
 
-if show_info_prediction and mode == "Prévision à partir des informations du projet":
-    st.header("Prévision du montant cagnotté")
-    name = st.text_input("Nom du projet")
-    deadline = st.date_input("Deadline", dt.date.today())
-    duration = st.number_input("Durée de campagne (jours)", min_value=1, step=1)
-    category = st.text_input("Thème ou catégorie")
+if mode == "Select a project":
+    st.header("Project Selection")
 
-    if st.button("Mettre à jour la prédiction"):
-        if not name or not category:
-            st.warning("Veuillez remplir tous les champs requis.")
-        else:
-            result = 'test'#predict_target(
-                #name=name,
-                #deadline=deadline.isoformat(),
-                #duration=int(duration),
-                #category=category,
-            #)
-            amount = result.get("amount")
-            st.success(f"Montant recommandé : {amount} euros")
+    # Sample projects dictionary
+    sample_projects = {
+        "Tech Project 1": {"id":"1153426630", "name":"GUITAR-JO 2.0 - Make Your Electric Guitar", "state":"success", "url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
+        "Game Project 2": {"id":"1053513419", "name":"Charggee: A New Way to Charge", "state":"success", "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"},
+        "Art Project 3": {"id":"100411349", "name":"E Coin Mining and Rig-Building Workshop", "state":"fail", "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
+        "Art Project 4": {"id":"1073099678", "name":"Pill Swallowing Device", "state":"fail", "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
+    }
 
-elif mode == "Prévision à partir d'un lien Kickstarter":
-    st.header("Prévision à partir d'un lien Kickstarter")
-    url = st.text_input("Lien du projet Kickstarter")
-    comment_type = st.selectbox("Type de commentaires à analyser", ["all", "positifs", "négatifs"])
-
-    if st.button("Analyser le lien"):
-        if not url:
-            st.warning("Veuillez fournir un lien")
-        else:
-            # Appel à l'API qui n'est pas opérationnelle pour l'instant
-            with st.spinner("Analyse en cours..."):
-                result = call_predict_api(url, comment_type)
-                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
-                st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
-
-elif mode == "Sélection d'un projet exemple":
-    st.header("Prévision à partir d'un projet exemple")
-
+    # Project selection
     selected_project = st.selectbox(
-        "Sélectionnez un projet",
+        "Select a project",
         options=list(sample_projects.keys())
     )
 
     if selected_project:
+        # Display project info
         project_data = sample_projects[selected_project]
-        st.write(f"Nom: {project_data['name']}")
-        st.write(f"URL: {project_data['url']}")
-        st.write(f"État actuel: {project_data['state']}")
 
-        if st.button("Analyser ce projet"):
-            with st.spinner("Analyse en cours..."):
-                # Appel à l'API avec les données du projet sélectionné
-                result = call_predict_api(project_data['url'], "all")
-                st.write("Résultat de l'analyse: ")
-                st.write("Projet: " + selected_project)
-                prob = result.get("probability", 0.5)  # Valeur par défaut de 0.5 si non disponible
-                st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
+        # Project name
+        st.subheader("Project Name")
+        st.write(project_data['name'])
+
+        # Project URL
+        st.subheader("Project URL")
+        st.write(project_data['url'])
+
+        # Comments list
+        st.subheader("Comments")
+        with st.expander("View comments", expanded=True):
+            # Simulate multiple comments
+            comments = [
+                {"text": "I love this project! The campaign is well structured.", "sentiment": "positive"},
+                {"text": "I'm disappointed by the lack of details about delivery times.", "sentiment": "negative"},
+                {"text": "Do you ship internationally?", "sentiment": "neutral"},
+                {"text": "Great innovation, I can't wait to receive my copy.", "sentiment": "positive"},
+                {"text": "I don't really understand how this product works.", "sentiment": "neutral"}
+            ]
+
+            for i, comment in enumerate(comments):
+                if comment["sentiment"] == "positive":
+                    st.success(comment["text"])
+                elif comment["sentiment"] == "negative":
+                    st.error(comment["text"])
+                else:
+                    st.info(comment["text"])
+
+        # Predicted state and probability
+        st.subheader("Prediction")
+        col1, col2 = st.columns(2)
+
+        # Simulate a predicted state based on the actual project state for demonstration
+        predicted_state = "Success" if project_data["state"] == "success" else "Failure"
+        probability = 0.87 if project_data["state"] == "success" else 0.73
+
+        with col1:
+            st.metric("Predicted State", predicted_state)
+        with col2:
+            st.metric("Probability", f"{probability*100:.1f}%")
+
+        # Informative message
+        st.info("Note: Predictions are simulated. Real predictions will be available when the API is integrated.")
+
+elif mode == "Enter a URL":
+    st.header("Analysis from URL")
+
+    # URL input field
+    url = st.text_input("Kickstarter project URL")
+
+    if st.button("Analyze this project"):
+        if not url:
+            st.warning("Please enter a URL")
+        else:
+            # Simulate loading
+            with st.spinner("Analysis in progress..."):
+                # Simulated project name
+                project_name = "Demo project via URL"
+
+                # Display project info
+                # Project name
+                st.subheader("Project Name")
+                st.write(project_name)
+
+                # Project URL
+                st.subheader("Project URL")
+                st.write(url)
+
+                # Comments list
+                st.subheader("Comments")
+                with st.expander("View comments", expanded=True):
+                    # Simulate multiple comments
+                    comments = [
+                        {"text": "This project looks promising!", "sentiment": "positive"},
+                        {"text": "I'm concerned about the team's experience.", "sentiment": "negative"},
+                        {"text": "When is the delivery date?", "sentiment": "neutral"}
+                    ]
+
+                    for i, comment in enumerate(comments):
+                        if comment["sentiment"] == "positive":
+                            st.success(comment["text"])
+                        elif comment["sentiment"] == "negative":
+                            st.error(comment["text"])
+                        else:
+                            st.info(comment["text"])
+
+                # Predicted state and probability
+                st.subheader("Prediction")
+                col1, col2 = st.columns(2)
+
+                # Simulate the predicted state for demonstration
+                import random
+                predicted_state = random.choice(["Success", "Failure"])
+                probability = random.uniform(0.6, 0.9)
+
+                with col1:
+                    st.metric("Predicted State", predicted_state)
+                with col2:
+                    st.metric("Probability", f"{probability*100:.1f}%")
+
+                # Informative message
+                st.info("Note: Predictions are simulated. Real predictions will be available when the API is integrated.")
