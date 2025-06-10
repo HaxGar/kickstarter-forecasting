@@ -24,20 +24,23 @@ def predict_api(commentaires : str):
     # 2/ Predict
     result = main.pred(df=df.head(1), model_name=model_name)
 
-    # Aggregate results
+  # Aggregate results
+    y_pred = result['y_pred']
     y_pred_proba = result['y_pred_proba']
 
-    message = (
-    "🎉 Your Kickstarter project is likely to SUCCEED!"
-    if y_pred == 1
-    else "⚠️ Your Kickstarter project is likely to FAIL."
-    )
+    if y_pred == 1:
+        message = "🎉 Your Kickstarter project is likely to SUCCEED!"
+        probability = round(float(y_pred_proba), 4)
+        probability_key = "probability_of_success"
+    else:
+        message = "⚠️ Unfortunaltely, your Kickstarter project is likely to FAIL."
+        probability = round(float(y_pred_proba), 4)
+        probability_key = "probability_of_failure"
 
     return {
-    "prediction": int(y_pred),
-    "probability_of_success": round(float(y_pred_proba), 4),
-    "message": message
-
-    # 2/ Predict success or failure
-    result = model.predict(X_test)
-    result_proba = model.predict_proba(X_test)
+        "Name of your project" : df['name'].head(1),
+        "Our prediction": message,
+        "based on the following posted comments" : "\n".join(df['X'].head(1).tolist()),
+        "prediction": int(y_pred),
+        probability_key: probability
+    }
