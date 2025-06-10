@@ -107,3 +107,17 @@ def preprocess(df:pd.DataFrame, remove_not_english=True)->pd.DataFrame :
     df = df.dropna(subset=['X'])
     print(f"❌ {_before - len(df)} commentaires vides supprimés")
     return df
+
+def preprocess_projet(projet:pd.DataFrame)->pd.DataFrame :
+# explode pour faire le preprocess par ligne
+    commentaires = projet.explode('commentaires').reset_index(drop=True)
+    # preprocess
+    preproc = preprocess(commentaires)
+    # regroup les commentaires par projet
+    preproc_projet = (
+        preproc
+        .groupby(['id'])['X']
+        .agg(' '.join)
+        .reset_index()
+    )
+    return projet.merge(preproc_projet)
