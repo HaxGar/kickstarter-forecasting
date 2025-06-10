@@ -5,6 +5,7 @@ notebook/
 *.parquet
 .DS_Store
 test.ipynb
+.devcontainer
 .pkl
 
 # Byte-compiled / optimized / DLL files
