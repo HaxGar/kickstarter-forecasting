@@ -1,47 +1,45 @@
-import datetime as dt
+# N'importez que streamlit, rien d'autre
 import streamlit as st
 
-from api import predict_target, predict_success
-
-
+# Titre principal
 st.title("Kickstarter Predictor")
 
-mode = st.sidebar.radio(
-    "Choisissez une option",
-    (
-        "Prévision à partir des informations du projet",
-        "Prévision à partir d'un lien Kickstarter",
-    ),
-)
+# Création des onglets - utilisation de st.tabs au lieu de radio buttons pour éviter les problèmes
+tab1, tab2, tab3 = st.tabs([
+    "Prévision à partir des informations du projet",
+    "Prévision à partir d'un lien Kickstarter",
+    "Sélection d'un projet exemple"
+])
 
-if mode == "Prévision à partir des informations du projet":
-    st.header("Prévision du montant cagnotté")
-    name = st.text_input("Nom du projet")
-    deadline = st.date_input("Deadline", dt.date.today())
-    duration = st.number_input("Durée de campagne (jours)", min_value=1, step=1)
-    category = st.text_input("Thème ou catégorie")
+# Contenu de l'onglet 1
+with tab1:
+    st.header("Prévision à partir des informations du projet")
+    st.info("Cette fonctionnalité est en cours de développement...")
 
-    if st.button("Mettre à jour la prédiction"):
-        if not name or not category:
-            st.warning("Veuillez remplir tous les champs requis.")
-        else:
-            result = 9 #predict_target(
-                #name=name,
-                #deadline=deadline.isoformat(),
-                #duration=int(duration),
-                #category=category,
-            #)
-            amount = result.get("amount")
-            st.success(f"Montant recommandé : {amount} euros")
-
-else:
+# Contenu de l'onglet 2
+with tab2:
     st.header("Prévision à partir d'un lien Kickstarter")
     url = st.text_input("Lien du projet Kickstarter")
+    comment_type = st.selectbox("Type de commentaires à analyser", ["all", "positifs", "négatifs"])
 
     if st.button("Analyser le lien"):
         if not url:
             st.warning("Veuillez fournir un lien")
         else:
-            result = 10 #predict_success(url)
-            prob = result.get("probability")
-            st.success(f"Probabilité de réussite : {prob * 100:.1f}%")
+            st.success("Simulation: Probabilité de réussite: 60%")
+            st.info("Note: Cette fonctionnalité est en développement")
+
+# Contenu de l'onglet 3
+with tab3:
+    st.header("Prévision à partir d'un projet exemple")
+
+    # Version simplifiée des projets
+    projects = ["Projet Tech 1", "Projet Jeu 2", "Projet Art 3", "Projet Art 4"]
+    selected = st.selectbox("Sélectionnez un projet", projects)
+
+    if selected:
+        st.write(f"Projet sélectionné: {selected}")
+
+        if st.button("Analyser ce projet"):
+            st.success(f"Simulation: Probabilité de réussite: 60%")
+            st.info("Note: Cette fonctionnalité est en développement")
