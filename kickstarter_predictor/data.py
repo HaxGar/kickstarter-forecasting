@@ -76,7 +76,7 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
     df_projects = load_raw_projects(filterLive)
     df_merged = (
         df_comments.merge(
-            df_projects[['id', 'state']]
+            df_projects[['id', 'state', 'name']]
         )
     )
     #df_merged = df_merged.head(50) #pour charger plus vite
@@ -94,7 +94,7 @@ def load_merged_raw_data(ligne_par_commentaire:bool, filterLive:bool=True)->pd.D
         # Regrouper par projet : on refait une liste des commentaires
         df_result = (
             df_merged
-            .groupby(['id', 'state'])['commentaires']
+            .groupby(['id', 'name', 'state'])['commentaires']
             .apply(list)
             .reset_index()
         )
@@ -274,13 +274,40 @@ def load_live_projects_comments(ligne_par_commentaire=True) :
     charge les commentaires (unitaires ou regroupés) des projets live pour test
     '''
     print("--------🔄 Entrée dans la fonction load_live_projects_comments--------")
-    df = load_merged_raw_data(
-        ligne_par_commentaire=ligne_par_commentaire,
-        filterLive=False
+
+    scenario = 'par_commentaire' if ligne_par_commentaire else 'par_projet'
+
+    cache_path = Path(LOCAL_DATA_PATH).joinpath(
+        'processed',
+        scenario,
+        'live_data.parquet'
     )
-    # uniquement les project live :
-    df = df[df['y']=='live']
-    # cleaning :
-    df['X_cleaned'] = df['X'].apply(cleaning_sentence)
-    print("--------🔄 Sortie de la fonction load_live_projects_comments--------")
-    return df.reset_index()
+    if cache_path.is_file():
+        df = pd.read_parquet(cache_path)
+    else :
+        df = load_merged_raw_data(
+            ligne_par_commentaire=ligne_par_commentaire,
+            filterLive=False
+        )
+        # uniquement les project live :
+        df = df[df['y']=='live']
+        # cleaning :
+        df['X_cleaned'] = df['X'].apply(cleaning_sentence)
+
+        before_nan = len(df)
+        df = df.dropna(subset=['X_cleaned'])
+        after_nan = len(df)
+        print(f"{before_nan - after_nan} commentaires supprimés car possède nan")
+        before_duplicate = len(df)
+        df = df.drop_duplicates(subset=['X_cleaned'])
+        after_duplicate = len(df)
+        print(f"{before_duplicate - after_duplicate} commentaires supprimés car possède dupplicate")
+        df.reset_index(inplace=True)
+        df.to_parquet(cache_path,index=False)
+        print("--------🔄 Sortie de la fonction load_live_projects_comments--------")
+
+    return df
+
+
+# if __name__=='__main__':
+#     load_data()
