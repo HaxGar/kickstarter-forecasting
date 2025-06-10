@@ -3,6 +3,8 @@ import streamlit as st
 
 #from API import predict_target, predict_success
 
+info_project =False
+
 st.title("Kickstarter Predictor")
 
 mode = st.sidebar.radio(
@@ -13,7 +15,7 @@ mode = st.sidebar.radio(
     ),
 )
 
-if mode == "Prévision à partir des informations du projet":
+if mode == "Prévision à partir des informations du projet" & info_project:
     st.header("Prévision du montant cagnotté")
     name = st.text_input("Nom du projet")
     deadline = st.date_input("Deadline", dt.date.today())
