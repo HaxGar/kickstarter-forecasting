@@ -108,7 +108,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+.env.yaml
 
 # mkdocs documentation
 /site

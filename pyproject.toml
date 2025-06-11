@@ -13,7 +13,6 @@ dependencies = [
     "nltk",
     "scikit-learn",     # Machine learning
     "python-dotenv",
-    "pyarrow",
     "langid",
     "fastapi[standard]"
 ]
