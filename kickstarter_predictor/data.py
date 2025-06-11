@@ -120,6 +120,16 @@ def get_cache_path(ligne_par_commentaire, filename):
         scenario,
         f'{filename}.parquet'
     )
+def load_data_by_project_title(titre_du_projet) :
+    df = load_data(ligne_par_commentaire=False, live=True)
+    projet = df[df['name'] == titre_du_projet]
+    return preprocess_projet(projet)
+
+def load_data_by_project_id(id_projet) :
+    df = load_data(ligne_par_commentaire=False, live=True)
+    projet = df[df['id'] == id_projet]
+    return preprocess_projet(projet)
+
 
 if __name__=='__main__':
     load_data()
