@@ -76,9 +76,9 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
         probability_key = "probability_of_failure"
 
     return {
-        "Name of your project" : df['name'][0],
-        "Our prediction": message,
-        "Based on the following posted comments" : [c for c in df['commentaires'][0]],
-        "Prediction": int(y_pred),
-        probability_key: probability
+        "project_name" : df['name'][0],
+        "message": message,
+        "comments" : [c for c in df['commentaires'][0]],
+        "prediction": int(y_pred),
+        "probability_key": probability
     }
