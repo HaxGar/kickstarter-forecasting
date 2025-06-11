@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from apps import main
+from kickstarter_predictor.predict import pred
 #import numpy as np
 
 from kickstarter_predictor.registry import *
@@ -27,7 +27,7 @@ def predict_par_titre(titre_du_projet : str = 'The REEL THING - Fishing Gun / Gr
     df = load_data_by_project_title(titre_du_projet)
 
     # 2/ Predict
-    result = main.pred(df, model_name=model_name)
+    result = pred(df, model_name=model_name)
   # Aggregate results
     y_pred = result['y_pred']
     y_pred_proba = result['y_pred_proba']
@@ -61,7 +61,7 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
     df = load_data_by_project_id(id_projet)
 
     # 2/ Predict
-    result = main.pred(df, model_name=model_name)
+    result = pred(df, model_name=model_name)
   # Aggregate results
     y_pred = result['y_pred']
     y_pred_proba = result['y_pred_proba']

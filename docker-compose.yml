@@ -1,0 +1,13 @@
+name: kickstarter
+
+services:
+  kickstarter:
+    image: europe-west1-docker.pkg.dev/solar-imprint-456810-d6/kickstarter/kickstarter-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    environment:
+      ROOT: /kickstarter
+      PORT: 8000

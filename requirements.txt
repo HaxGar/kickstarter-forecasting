@@ -1,0 +1,8 @@
+nltk
+scikit-learn
+python-dotenv
+langid
+fastapi[standard]
+pandas
+numpy
+pyarrow
