@@ -1,7 +1,8 @@
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 from time import sleep
-from pandas import DataFrame
+from typing import List, Tuple
 
+from pandas import DataFrame
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Firefox
 from selenium.webdriver import FirefoxOptions
@@ -16,6 +17,7 @@ from kickstarter_predictor.predict import pred
 
 def highlight(element):
     """Highlights (blinks) a Selenium Webdriver element"""
+
     driver = element._parent
     def apply_style(s):
         driver.execute_script("arguments[0].setAttribute('style', arguments[1]);",
@@ -24,6 +26,7 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     sleep(3)
     apply_style(original_style)
+
 
 def initialize_driver() -> Firefox:
     options = FirefoxOptions()
@@ -39,6 +42,7 @@ def initialize_driver() -> Firefox:
 
     driver = Firefox(options=options)
 
+
     return driver
 
 
@@ -51,33 +55,45 @@ def build_comment_page_url(raw_url: str) -> str:
     return final_url
 
 
-def scrape_kickstarter_url(url: str) -> DataFrame:
-    driver = initialize_driver()
+def scrape_kickstarter_url(url: str) -> Tuple[DataFrame, List[str]]:
+    """Perform a full scraping workflow from a kickstarter url to a dataframe.
 
+    Args:
+        url (str): The kickstarter url.
+
+    Returns:
+        Tuple[DataFrame, List[str]]: The grouped comments as a DataFrame, and the list of raw comments.
+    """
+
+    # On initialise le webdriver avec lequel on va scraper
+    driver = initialize_driver()
     print("Driver loaded")
 
-
+    # Depuis l'url du projet, on nettoie pour ajouter le "/comment"
     url = build_comment_page_url(url)
 
+    # On va chercher la page
     print("Fetching url")
     driver.get(url)
 
+    # On attend que la page soit chargée
     WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
     )
     print("On page !")
 
+    # On attend que les commentaires soient chargés
     WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.ID, "react-project-comments"))
     )
 
-    # Closes the cookie box
+    # On ferme la fenêtre des cookies qui bloque le clique
     try:
         driver.find_element(By.CSS_SELECTOR, "button[class*='absolute t2 r2 pointer block py0 bg-transparent']").click()
     except Exception as error:
         print(f"An error occured while trying to close the cookie box : {error}")
 
-    # Attempt at displaying all comments
+    # On tente d'appuyer sur le bouton "Load more" pour aller chercher plus de commentaires (ne marche pas...)
     print("Expanding comments")
     for i in range(1,5):
         # Expand comments
@@ -107,6 +123,7 @@ def scrape_kickstarter_url(url: str) -> DataFrame:
             print(f"Error while loading more comments : {error}")
             break
 
+    # On clique sur les boutons dans le thread pour afficher les sous commentaires
     for i in range(50):
         # Expand comments
         try:
@@ -115,11 +132,13 @@ def scrape_kickstarter_url(url: str) -> DataFrame:
                 button.click()
             # previous_comment_button.click()
             print("Load previous clicked")
+            sleep(0.1)
         except Exception as error:
             print(f"Error expanding comments : {error}")
             break
     
 
+    # Une fois la page augmentée au maximum, on scrape les commentaires
     user_comments = []
     try:
         # print("Scraping comments")
@@ -138,13 +157,14 @@ def scrape_kickstarter_url(url: str) -> DataFrame:
     except Exception as error:
         print(f"Scraping comments failed with error : {error}")
     
+    # On ferme le driver
     try:
         driver.quit()
     except Exception as error:
         print(f"Quitting driver failed with error : {error}")
 
+    # On regroupe les commentaires pour les mettre dans le dataframe
     grouped_comments = " ".join(user_comments).strip().replace("\n", " ")
-
     dataframe_comments = DataFrame([grouped_comments], columns=["commentaires"])
 
     return dataframe_comments, user_comments

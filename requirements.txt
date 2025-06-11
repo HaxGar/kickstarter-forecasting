@@ -6,3 +6,4 @@ fastapi[standard]
 pandas
 numpy
 pyarrow
+selenium
