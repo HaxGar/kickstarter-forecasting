@@ -33,7 +33,7 @@ show_info_prediction_tab = False  # Set to True to reactivate this tab
 id_projet = st.text_input("Enter the project ID (e.g., 1376423):", "1376423")
 
 params = {
-            "id_projet": id_projet
+            "url": id_projet
         }
 
 response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)

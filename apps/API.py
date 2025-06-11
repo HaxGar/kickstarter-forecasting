@@ -86,7 +86,7 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
 
 @app.get("/predict_by_url")
 def predict_by_url(url: str) -> dict:
-    dataframe_comments, user_comments = scrape_kickstarter_url(
+    project_name, dataframe_comments, user_comments = scrape_kickstarter_url(
         url
         # "https://www.kickstarter.com/projects/zafirro/zafirro-sapphire-blade-razor"                                                                           # FAIL
         # "https://www.kickstarter.com/projects/hozodesign/neoblade?ref=discovery_category&total_hits=54753&category_id=334"                                    # SUCCESS
@@ -109,7 +109,7 @@ def predict_by_url(url: str) -> dict:
         probability = round(float(y_pred_proba), 4)
 
     return {
-        "project_name" : "Named is not scraped yet",
+        "project_name" : project_name,
         "message": message,
         "comments" : user_comments,
         "prediction": int(y_pred),
