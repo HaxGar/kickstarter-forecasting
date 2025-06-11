@@ -5,3 +5,4 @@ langid
 fastapi[standard]
 pandas
 numpy
+pyarrow

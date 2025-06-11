@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "8080:8000"
     environment:
-      ROOT : /kickstarter
-
+      ROOT: /kickstarter
+      PORT: 8000
