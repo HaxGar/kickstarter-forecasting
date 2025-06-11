@@ -70,7 +70,7 @@ def main():
 
     # Attempt at displaying all comments
     print("Expanding comments")
-    for i in range(1,10):
+    for i in range(1,5):
         # Expand comments
         try:
             web_element = "//span[text()='Load more']/.."
@@ -90,9 +90,6 @@ def main():
 
             load_more_button.click()
             load_more_button.send_keys(Keys.ENTER)
-
-            highlight(load_more_button)
-
             # driver.execute_script("return arguments[0].click()", load_more_button)
             # load_more_button.click()
             # ActionChains(driver).move_to_element(load_more_button).click().perform()
@@ -125,7 +122,9 @@ def main():
         subcomments = comment.find_elements(By.CSS_SELECTOR, "div[class*='border-box relative break-word border border-grey-400 px3 pt3 pb2 o100p transition-all transition-delay-1000 bg-white']")
         print(f"Thread {index} : {len(subcomments)} comments")
         for comment in subcomments:
-            user_comments.append(" ".join(comment.text.split("\n")))
+            if "Creator".lower() in comment.text.lower():
+                continue
+            user_comments.append(" ".join(comment.text.split("\n")[2:]))
 
     with open("comments.txt", "w") as comment_file:
         comment_file.write(
