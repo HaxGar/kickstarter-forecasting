@@ -1,5 +1,6 @@
 from urllib.parse import urlparse, urljoin
 from time import sleep
+from pandas import DataFrame
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Firefox
@@ -8,6 +9,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+
+from kickstarter_predictor.preprocess_ML import preprocess
+from kickstarter_predictor.predict import pred
+
 
 def highlight(element):
     """Highlights (blinks) a Selenium Webdriver element"""
@@ -20,43 +25,47 @@ def highlight(element):
     sleep(3)
     apply_style(original_style)
 
-
-
-def main():
+def initialize_driver() -> Firefox:
     options = FirefoxOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--width=2560')
     options.add_argument('--height=1440')
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-extensions')
-    # options.add_argument('--disable-plugins')
+    options.add_argument('--disable-plugins')
     options.add_argument('--disable-images')
+
     driver = Firefox(options=options)
+
+    return driver
+
+
+def build_comment_page_url(raw_url: str) -> str:
+    raw_url = urlparse(raw_url)
+    project_url = raw_url._replace(query="").geturl()
+    project_comments_url = urlparse(f"{project_url}/comments")
+    final_url = project_comments_url.geturl()
+
+    return final_url
+
+
+def scrape_kickstarter_url(url: str) -> DataFrame:
+    driver = initialize_driver()
 
     print("Driver loaded")
 
 
-    raw_url = urlparse("https://www.kickstarter.com/projects/zettlab/zettlab-ai-nas-personal-cloud-for-smart-data-management/")
-    project_url = raw_url._replace(query="").geturl()
-    project_comments_url = urlparse(f"{project_url}/comments")
-    url = project_comments_url.geturl()
+    url = build_comment_page_url(url)
 
     print("Fetching url")
     driver.get(url)
+
     WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
     )
     print("On page !")
-
-
-    # Navigating to the comments page
-    # print("Searching for element...")
-    # comment_button = driver.find_element(By.ID, "comments-emoji")
-
-    # print("... Found ! Navigating to the comments page...")
-    # comment_button.click()
 
     WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.ID, "react-project-comments"))
@@ -111,32 +120,69 @@ def main():
             break
     
 
-    # print("Scraping comments")
-    # all_comments = driver.find_elements(By.CSS_SELECTOR, "div[class*='border-box relative break-word border border-grey-400 px3 pt3 pb2 o100p transition-all transition-delay-1000 bg-white']")
-    all_comments = driver.find_elements(By.CSS_SELECTOR, "li[class*='mb2']")
-
-    # # Retrieve comments
     user_comments = []
-    for index, comment in enumerate(all_comments):
+    try:
+        # print("Scraping comments")
+        # all_comments = driver.find_elements(By.CSS_SELECTOR, "div[class*='border-box relative break-word border border-grey-400 px3 pt3 pb2 o100p transition-all transition-delay-1000 bg-white']")
+        all_comments = driver.find_elements(By.CSS_SELECTOR, "li[class*='mb2']")
 
-        subcomments = comment.find_elements(By.CSS_SELECTOR, "div[class*='border-box relative break-word border border-grey-400 px3 pt3 pb2 o100p transition-all transition-delay-1000 bg-white']")
-        print(f"Thread {index} : {len(subcomments)} comments")
-        for comment in subcomments:
-            if "Creator".lower() in comment.text.lower():
-                continue
-            user_comments.append(" ".join(comment.text.split("\n")[2:]))
+        # # Retrieve comments
+        for index, comment in enumerate(all_comments):
 
-    with open("comments.txt", "w") as comment_file:
-        comment_file.write(
-            "\n".join(comment for comment in user_comments)
-        )
+            subcomments = comment.find_elements(By.CSS_SELECTOR, "div[class*='border-box relative break-word border border-grey-400 px3 pt3 pb2 o100p transition-all transition-delay-1000 bg-white']")
+            print(f"Thread {index} : {len(subcomments)} comments")
+            for comment in subcomments:
+                if "Creator".lower() in comment.text.lower():
+                    continue
+                user_comments.append(" ".join(comment.text.split("\n")[2:]))
+    except Exception as error:
+        print(f"Scraping comments failed with error : {error}")
+    
+    try:
+        driver.quit()
+    except Exception as error:
+        print(f"Quitting driver failed with error : {error}")
 
-    driver.quit()
+    grouped_comments = " ".join(user_comments).strip().replace("\n", " ")
 
-    print("Exiting driver")
+    dataframe_comments = DataFrame([grouped_comments], columns=["commentaires"])
+
+    return dataframe_comments, user_comments
 
 
-    # print(project_amount.text)
+def main():
+    print("Driver loaded")
+
+    dataframe_comments, user_comments = scrape_kickstarter_url(
+        "https://www.kickstarter.com/projects/zafirro/zafirro-sapphire-blade-razor"                                                                             # FAIL
+        # "https://www.kickstarter.com/projects/hozodesign/neoblade?ref=discovery_category&total_hits=54753&category_id=334"                                    # SUCCESS
+        # "https://www.kickstarter.com/projects/ohdoki/the-handy-2-the-1-male-sex-toy-now-even-better?ref=discovery_category&total_hits=54753&category_id=52"   # SUCCESS
+    )
+
+    prepreocessed_project = preprocess(dataframe_comments)
+
+    result = pred(prepreocessed_project, "20250610-101116_MultinomialNB_by_project.pkl")
+
+      # Aggregate results
+    y_pred = result['y_pred']
+    y_pred_proba = result['y_pred_proba']
+
+    if y_pred == 1:
+        message = "🎉 Your Kickstarter project is likely to SUCCEED!"
+        probability = round(float(y_pred_proba), 4)
+        probability_key = "probability_of_success"
+    else:
+        message = "⚠️ Unfortunaltely, your Kickstarter project is likely to FAIL."
+        probability = round(float(y_pred_proba), 4)
+        probability_key = "probability_of_failure"
+
+    return {
+        "Our prediction": message,
+        "Based on the following posted comments" : user_comments,
+        "Prediction": int(y_pred),
+        probability_key: probability
+    }
+
 
 if __name__ == "__main__":
-    main()
+    print(main())
