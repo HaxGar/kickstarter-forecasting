@@ -8,15 +8,9 @@ version = "0.0.1"
 readme = "README.md"
 requires-python=">=3.12.9"
 description = "kickstartup_forecasting Model"
-
-dependencies = [
-    "nltk",
-    "scikit-learn",     # Machine learning
-    "python-dotenv",
-    "pyarrow",
-    "langid",
-    "fastapi[standard]",
-]
+dynamic = ["dependencies"]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
 where = ["."]

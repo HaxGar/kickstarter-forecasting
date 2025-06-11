@@ -3,6 +3,7 @@ import kickstarter_predictor.data as data
 from kickstarter_predictor import train_test
 import kickstarter_predictor.data
 import kickstarter_predictor.registry
+from kickstarter_predictor.predict import pred
 from sklearn.model_selection import cross_validate
 from sklearn.pipeline import make_pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -31,17 +32,6 @@ def preprocess_and_train(ngram = (1, 3), max_features = 10000, alpha=0.1, model_
 
     kickstarter_predictor.registry.save_full_registry(model=pipeline_naive_bayes, model_type=model_type, params=pipeline_naive_bayes.get_params(), metrics=scores)
     return None
-
-def pred(df, model_name) -> None:
-    print('------Predict------')
-    model = kickstarter_predictor.registry.load_model(model_name=model_name)
-    model = model['model']
-    X_live = df['X']
-    y_pred = model.predict(X_live)
-    y_pred_proba = model.predict_proba(X_live)[:, 1]
-    print(f"Predictions: {y_pred}")
-    print(f"Prediction probabilities: {y_pred_proba}")
-    return {'y_pred': y_pred,'y_pred_proba': y_pred_proba}
 
 if __name__ == '__main__':
     try:
