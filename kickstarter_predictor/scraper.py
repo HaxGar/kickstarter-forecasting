@@ -55,14 +55,14 @@ def build_comment_page_url(raw_url: str) -> str:
     return final_url
 
 
-def scrape_kickstarter_url(url: str) -> Tuple[DataFrame, List[str]]:
+def scrape_kickstarter_url(url: str) -> Tuple[str, DataFrame, List[str]]:
     """Perform a full scraping workflow from a kickstarter url to a dataframe.
 
     Args:
         url (str): The kickstarter url.
 
     Returns:
-        Tuple[DataFrame, List[str]]: The grouped comments as a DataFrame, and the list of raw comments.
+        Tuple[str, DataFrame, List[str]]: The project name, the grouped comments as a DataFrame, and the list of raw comments.
     """
 
     # On initialise le webdriver avec lequel on va scraper
@@ -92,6 +92,16 @@ def scrape_kickstarter_url(url: str) -> Tuple[DataFrame, List[str]]:
         driver.find_element(By.CSS_SELECTOR, "button[class*='absolute t2 r2 pointer block py0 bg-transparent']").click()
     except Exception as error:
         print(f"An error occured while trying to close the cookie box : {error}")
+    
+    # On scrape le nom du projet
+    project_name = "Project named unscraped"
+    try:
+        print("Scraping project name...")
+        title_element = driver.find_element(By.XPATH, '//*[@id="react-project-header"]/div/div[1]/div[2]/div/div[2]/div/h1')
+        project_name = title_element.text
+        print(f"Project name is {project_name}")
+    except Exception as error:
+        print(f"An error occured while trying to scrape the title : {error}")
 
     # On tente d'appuyer sur le bouton "Load more" pour aller chercher plus de commentaires (ne marche pas...)
     print("Expanding comments")
@@ -167,13 +177,13 @@ def scrape_kickstarter_url(url: str) -> Tuple[DataFrame, List[str]]:
     grouped_comments = " ".join(user_comments).strip().replace("\n", " ")
     dataframe_comments = DataFrame([grouped_comments], columns=["commentaires"])
 
-    return dataframe_comments, user_comments
+    return project_name, dataframe_comments, user_comments
 
 
 def main():
     print("Driver loaded")
 
-    dataframe_comments, user_comments = scrape_kickstarter_url(
+    project_name, dataframe_comments, user_comments = scrape_kickstarter_url(
         "https://www.kickstarter.com/projects/zafirro/zafirro-sapphire-blade-razor"                                                                             # FAIL
         # "https://www.kickstarter.com/projects/hozodesign/neoblade?ref=discovery_category&total_hits=54753&category_id=334"                                    # SUCCESS
         # "https://www.kickstarter.com/projects/ohdoki/the-handy-2-the-1-male-sex-toy-now-even-better?ref=discovery_category&total_hits=54753&category_id=52"   # SUCCESS
@@ -197,10 +207,11 @@ def main():
         probability_key = "probability_of_failure"
 
     return {
-        "Our prediction": message,
-        "Based on the following posted comments" : user_comments,
-        "Prediction": int(y_pred),
-        probability_key: probability
+        "project_name" : project_name,
+        "message": message,
+        "comments" : user_comments,
+        "prediction": int(y_pred),
+        "probability_key": probability
     }
 
 
