@@ -36,7 +36,7 @@ params = {
             "id_projet": id_projet
         }
 
-response = requests.get("http://127.0.0.1:8000/predict_par_id", params=params)
+response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
 print(response)
 
 if response.status_code == 200:
