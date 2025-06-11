@@ -1,6 +1,7 @@
 import datetime as dt
 import streamlit as st
 import requests
+import pandas as pd
 
 
 st.title("KickPredict")
@@ -23,35 +24,87 @@ show_info_prediction_tab = False  # Set to True to reactivate this tab
     #st.header("Project Selection")
 
 # Sample projects dictionary
-    #sample_projects = {
-        #"Tech Project 1": {"id":"1153426630", "name":"GUITAR-JO 2.0 - Make Your Electric Guitar", "state":"success", "url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
-        #"Game Project 2": {"id":"1053513419", "name":"Charggee: A New Way to Charge", "state":"success", "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"},
-        #"Art Project 3": {"id":"100411349", "name":"E Coin Mining and Rig-Building Workshop", "state":"fail", "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
-        #"Art Project 4": {"id":"1073099678", "name":"Pill Swallowing Device", "state":"fail", "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
-    #}
+sample_projects = {
+    "1": {
+        "id": "1153426630",
+        "name": "GUITAR-JO 2.0 - Make Your Electric Guitar",
+        "url": "https://www.kickstarter.com/projects/sample/tech-project-1"
+    },
+    "2": {
+        "id": "1053513419",
+        "name": "Charggee: A New Way to Charge",
+        "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"
+    },
+    "3": {
+        "id": "100411349",
+        "name": "E Coin Mining and Rig-Building Workshop",
+        "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"
+    },
+    "4": {
+        "id": "1073099678",
+        "name": "Pill Swallowing Device",
+        "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"
+    },
+}
 
-id_projet = st.text_input("Enter the project ID (e.g., 1376423):", "1376423")
+st.markdown("Predict your likely Kickstarter project success or failure based on comments posted by backers.")
 
-params = {
-            "id_projet": id_projet
-        }
+# Sélection du projet par son alias
+choix = st.selectbox(
+    "choose a project",
+    options=list(sample_projects.keys()),
+    format_func=lambda x: sample_projects[x]["name"]  # affiche le “name” dans la liste
+)
 
-response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
-print(response)
+st.info(sample_projects[choix]["url"])
 
-if response.status_code == 200:
-    message = response.json().get("message", None)
-    project_name = response.json().get("project_name", None)
-    comments = response.json().get("comments", None)
-    probability = response.json().get("probability_key", None)
+if st.button("Lancer la requête"):
 
-    if message:
-        st.success(project_name)
-        st.success(message)
-        st.success(f"based on the following posted comments{comments}")
+    # Récupération de l’ID correspondant
+    id_projet = sample_projects[choix]["id"]
 
-    else:
-        st.error("We are unable to retrieve a prediction for this project")
+    params = {
+                "id_projet": id_projet
+            }
+
+    response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
+    print(response)
+
+
+
+    if response.status_code == 200:
+        message = response.json().get("message", None)
+        project_name = response.json().get("project_name", None)
+        comments = response.json().get("comments", None)
+        df_comments = pd.DataFrame(comments, columns=["comments"])
+        probability = response.json().get("probability_key", None)
+        prediction = response.json().get("prediction", None)
+
+        if message:
+            if prediction == 1:
+                #st.success(project_name)
+                st.balloons()
+                st.success(message)
+                st.info(f"Probability of success: **{probability*100:.1f} %**")
+
+                #st.info(f"based on the following posted comments: {comments}")
+                st.markdown("### Commentaires")
+                for c in comments:
+                    st.markdown(f"- {c}")
+
+            else:
+                #st.error(project_name)
+                st.snow()
+                st.error(message)
+                st.info(f"Probability of failure: **{probability*100:.1f} %**")
+                st.info(sample_projects[choix]["url"])
+                #st.info(f"based on the following posted comments: {comments}")
+                st.markdown("### Commentaires")
+                for c in comments:
+                    st.markdown(f"- {c}")
+
+        else:
+            st.error("We are unable to retrieve a prediction for this project")
 
 
 # Sample projects dictionary
