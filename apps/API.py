@@ -12,15 +12,10 @@ model_info = load_model(model_name=model_name)
 model = model_info['model']
 
 
-<<<<<<< HEAD
-@app.get("/predict")
-def predict_api(commentaires : str):
-=======
 @app.get("/predict_par_titre")
 def predict_par_titre(titre_du_projet : str = 'The REEL THING - Fishing Gun / Grab Your Gun and GO!!!') -> dict :
     # p. e. : 'The REEL THING - Fishing Gun / Grab Your Gun and GO!!!'
     # on pourrait le faire avec index du projet aussi
->>>>>>> ea8aa85 (valeurs par défault pour titre et id)
 
     # 1/a Load data from kickstarter url
         # besoin de scrapper / pending Adrien-Anatole
@@ -52,12 +47,6 @@ def predict_par_titre(titre_du_projet : str = 'The REEL THING - Fishing Gun / Gr
         "prediction": int(y_pred),
         probability_key: probability
     }
-<<<<<<< HEAD
-=======
-    print(dd)
-
-    return dd
-
 
 @app.get("/predict_par_id")
 def predict_par_id(id_projet : str = '1376423') -> dict :
@@ -84,14 +73,11 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
         probability = round(float(y_pred_proba), 4)
         probability_key = "probability_of_failure"
 
-    dd = {
-        "Name of your project" : df['name'],
+    return {
+        "Name of your project" : df['name'][0],
         "Our prediction": message,
-        "based on the following posted comments" : "\n".join(df['X'].tolist()),
-        "prediction": int(y_pred),
+        "Based on the following posted comments" : [c for c in df['commentaires'][0]],
+        "Prediction": int(y_pred),
         probability_key: probability
     }
-    print(dd)
-
     return dd
->>>>>>> ea8aa85 (valeurs par défault pour titre et id)
