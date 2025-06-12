@@ -1,7 +1,7 @@
 FROM python:3.12.9-slim
 
 # Installation de Firefox dans le container
-RUN apt-get update && apt-get install wget gnupg -y
+RUN apt-get update && apt-get install wget gnupg curl unzip xvfb -y
 RUN wget -q -O - https://packages.mozilla.org/apt/repo-signing-key.gpg | apt-key add - \
     && echo "deb https://packages.mozilla.org/apt mozilla main" | tee -a /etc/apt/sources.list.d/mozilla.list \
     && apt-get update \
@@ -30,6 +30,21 @@ ADD data/processed/live_commentaires.parquet ./data/processed/live_commentaires.
 # Une fois que tout est en place, on installe le projet
 COPY pyproject.toml .
 RUN pip install -e .
+
+
+ENV DISPLAY=:99
+
+# Install geckodriver
+RUN GECKODRIVER_VERSION=$(curl -s "https://api.github.com/repos/mozilla/geckodriver/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/') \
+    && wget -O /tmp/geckodriver.tar.gz "https://github.com/mozilla/geckodriver/releases/download/$GECKODRIVER_VERSION/geckodriver-$GECKODRIVER_VERSION-linux64.tar.gz" \
+    && tar -C /usr/local/bin -xzf /tmp/geckodriver.tar.gz \
+    && chmod +x /usr/local/bin/geckodriver \
+    && rm /tmp/geckodriver.tar.gz
+
+# Create a non-root user for security
+RUN groupadd -r selenium && useradd -r -g selenium -G audio,video selenium \
+    && mkdir -p /home/selenium && chown -R selenium:selenium /home/selenium \
+    && chown -R selenium:selenium /kickstarter
 
 # Commande qui sera lancée au démarrage du container
 CMD ["fastapi", "run", "apps/API.py", "--host", "0.0.0.0", "--port", "8080"]
