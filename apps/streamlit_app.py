@@ -1,171 +1,149 @@
 import datetime as dt
 import streamlit as st
 import requests
+import pandas as pd
 
 
 st.title("KickPredict")
 
-# Boolean variable to control the display of "Prediction from project information" tab
-show_info_prediction_tab = False  # Set to True to reactivate this tab
+st.markdown("Predict your likely Kickstarter project success or failure based on comments posted by backers.")
 
-# Options for the sidebar menu
-#sidebar_options = [
-    #"Select a project",
-    #"Enter a URL"
-#]
+tab1, tab2 = st.tabs([
+    "Predict with validation projects",
+    "Predict current project"
+])
 
-# mode = st.sidebar.radio(
-    #"Choose an option",
-    #tuple(sidebar_options)
-#)
+with tab1:
+    # Sample projects dictionary
+    sample_projects = {
+        "1": {
+            "id": "1153426630",
+            "name": "GUITAR-JO 2.0 - Make Your Electric Guitar",
+            "url": "https://www.kickstarter.com/projects/jlangberg/guitar-jo-20-make-your-electric-guitar-sound-like"
+        },
+        "2": {
+            "id": "1053513419",
+            "name": "Charggee: A New Way to Charge",
+            "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"
+        },
+        "3": {
+            "id": "100411349",
+            "name": "E Coin Mining and Rig-Building Workshop",
+            "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop"
+        },
+        "4": {
+            "id": "1073099678",
+            "name": "Pill Swallowing Device",
+            "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device"
+        },
+    }
 
-#if mode == "Select a project":
-    #st.header("Project Selection")
+    # Sélection du projet par son alias
+    choix = st.selectbox(
+        "choose a project :",
+        options=list(sample_projects.keys()),
+        format_func=lambda x: sample_projects[x]["name"]  # affiche le “name” dans la liste
+    )
 
-# Sample projects dictionary
-    #sample_projects = {
-        #"Tech Project 1": {"id":"1153426630", "name":"GUITAR-JO 2.0 - Make Your Electric Guitar", "state":"success", "url": "https://www.kickstarter.com/projects/sample/tech-project-1"},
-        #"Game Project 2": {"id":"1053513419", "name":"Charggee: A New Way to Charge", "state":"success", "url": "https://www.kickstarter.com/projects/1740700612/charggee-a-new-way-to-charge-protect-your-mobile-d"},
-        #"Art Project 3": {"id":"100411349", "name":"E Coin Mining and Rig-Building Workshop", "state":"fail", "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"},
-        #"Art Project 4": {"id":"1073099678", "name":"Pill Swallowing Device", "state":"fail", "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"},
-    #}
+    st.info(sample_projects[choix]["url"])
 
-id_projet = st.text_input("Enter the project ID (e.g., 1376423):", "1376423")
+    if st.button("Predict"):
 
-params = {
-            "id_projet": id_projet
-        }
+        # Récupération de l’ID correspondant
+        id_projet = sample_projects[choix]["id"]
 
-response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
-print(response)
+        params = {
+                    "id_projet": id_projet
+                }
 
-if response.status_code == 200:
-    message = response.json().get("message", None)
-    project_name = response.json().get("project_name", None)
-    comments = response.json().get("comments", None)
-    probability = response.json().get("probability_key", None)
+        response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
+#        response = requests.get("http://localhost:8080/predict_par_id", params=params)
+        print(response)
 
-    if message:
-        st.success(project_name)
-        st.success(message)
-        st.success(f"based on the following posted comments{comments}")
+        if response.status_code == 200:
+            message = response.json().get("message", None)
+            project_name = response.json().get("project_name", None)
+            comments = response.json().get("comments", None)
+            df_comments = pd.DataFrame(comments, columns=["comments"])
+            probability = response.json().get("probability_key", None)
+            prediction = response.json().get("prediction", None)
 
-    else:
-        st.error("We are unable to retrieve a prediction for this project")
+            if message:
+                if prediction == 1:
+                    #st.success(project_name)
+                    st.balloons()
+                    col1, col2 = st.columns([2,1])
+                    with col1:
+                        st.success(message)
+                    with col2:
+                        st.info(f"Probability of success:  \n" f"**{probability*100:.1f} %**")
+                    st.markdown("##### Based on the following posted comments:")
+                    for c in comments:
+                        st.markdown(f"- {c}")
 
+                else:
+                    #st.error(project_name)
+                    st.snow()
+                    col1, col2 = st.columns([2,1])
+                    with col1:
+                        st.error(message)
+                    with col2:
+                        st.info("Probability of failure:  \n" f"**{probability*100:.1f} %**")
+                    st.markdown("##### Based on the following posted comments:")
+                    for c in comments:
+                        st.markdown(f"- {c}")
 
-# Sample projects dictionary
+            else:
+                st.error("We are unable to retrieve a prediction for this project")
 
+with tab2:
+    project_url = st.text_input("Enter the project url :", "")
+    # Bouton pour déclencher la requête
+    if st.button("Scrape and predict"):
+        params = {
+                    "url": project_url
+                }
 
-#     # Project selection
-# selected_project = st.selectbox(
-# "Select a project",
-# options=list(sample_projects.keys())
-# )
+        response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_by_url", params=params)
+#        response = requests.get("http://localhost:8080/predict_by_url", params=params)
+        print(response)
 
-# if selected_project:
-# # Display project info
-# project_data = sample_projects[selected_project]
+        if response.status_code == 200:
+            message = response.json().get("message", None)
+            project_name = response.json().get("project_name", None)
+            comments = response.json().get("comments", None)
+            df_comments = pd.DataFrame(comments, columns=["comments"])
+            probability = response.json().get("probability_key", None)
+            prediction = response.json().get("prediction", None)
 
-# # Project name
-# st.subheader("Project Name")
-# st.write(project_data['name'])
+            if message:
+                if prediction == 1:
+                    #st.success(project_name)
+                    st.balloons()
+                    col1, col2 = st.columns([2,1])
+                    with col1:
+                        st.success(message)
+                    with col2:
+                        st.info(f"Probability of success:  \n" f"**{probability*100:.1f} %**")
+                    st.markdown("##### Based on the following posted comments:")
+                    for c in comments:
+                        st.markdown(f"- {c}")
 
-# # Project URL
-# st.subheader("Project URL")
-# st.write(project_data['url'])
+                else:
+                    #st.error(project_name)
+                    st.snow()
+                    col1, col2 = st.columns([2,1])
+                    with col1:
+                        st.error(message)
+                    with col2:
+                        st.info("Probability of failure:  \n" f"**{probability*100:.1f} %**")
+                    st.markdown("##### Based on the following posted comments:")
+                    for c in comments:
+                        st.markdown(f"- {c}")
 
-# # Comments list
-# st.subheader("Comments")
-# with st.expander("View comments", expanded=True):
-#     # Simulate multiple comments
-#     comments = [
-#         {"text": "I love this project! The campaign is well structured.", "sentiment": "positive"},
-#         {"text": "I'm disappointed by the lack of details about delivery times.", "sentiment": "negative"},
-#         {"text": "Do you ship internationally?", "sentiment": "neutral"},
-#         {"text": "Great innovation, I can't wait to receive my copy.", "sentiment": "positive"},
-#         {"text": "I don't really understand how this product works.", "sentiment": "neutral"}
-#     ]
-
-#     for i, comment in enumerate(comments):
-#         if comment["sentiment"] == "positive":
-#             st.success(comment["text"])
-#         elif comment["sentiment"] == "negative":
-#             st.error(comment["text"])
-#         else:
-#             st.info(comment["text"])
-
-# # Predicted state and probability
-# st.subheader("Prediction")
-# col1, col2 = st.columns(2)
-
-# # Simulate a predicted state based on the actual project state for demonstration
-# predicted_state = "Success" if project_data["state"] == "success" else "Failure"
-# probability = 0.87 if project_data["state"] == "success" else 0.73
-
-# with col1:
-#     st.metric("Predicted State", predicted_state)
-# with col2:
-#     st.metric("Probability", f"{probability*100:.1f}%")
-
-# # Informative message
-# st.info("Note: Predictions are simulated. Real predictions will be available when the API is integrated.")
-
-# elif mode == "Enter a URL":
-# st.header("Analysis from URL")
-
-# # URL input field
-# url = st.text_input("Kickstarter project URL")
-
-# if st.button("Analyze this project"):
-# if not url:
-#     st.warning("Please enter a URL")
-# else:
-#     # Simulate loading
-#     with st.spinner("Analysis in progress..."):
-#         # Simulated project name
-#         project_name = "Demo project via URL"
-
-#         # Display project info
-#         # Project name
-#         st.subheader("Project Name")
-#         st.write(project_name)
-
-#         # Project URL
-#         st.subheader("Project URL")
-#         st.write(url)
-
-#         # Comments list
-#         st.subheader("Comments")
-#         with st.expander("View comments", expanded=True):
-#             # Simulate multiple comments
-#             comments = [
-#                 {"text": "This project looks promising!", "sentiment": "positive"},
-#                 {"text": "I'm concerned about the team's experience.", "sentiment": "negative"},
-#                 {"text": "When is the delivery date?", "sentiment": "neutral"}
-#             ]
-
-#             for i, comment in enumerate(comments):
-#                 if comment["sentiment"] == "positive":
-#                     st.success(comment["text"])
-#                 elif comment["sentiment"] == "negative":
-#                     st.error(comment["text"])
-#                 else:
-#                     st.info(comment["text"])
-
-#         # Predicted state and probability
-#         st.subheader("Prediction")
-#         col1, col2 = st.columns(2)
-
-#         # Simulate the predicted state for demonstration
-#         import random
-#         predicted_state = random.choice(["Success", "Failure"])
-#         probability = random.uniform(0.6, 0.9)
-
-#         with col1:
-#             st.metric("Predicted State", predicted_state)
-#         with col2:
-#             st.metric("Probability", f"{probability*100:.1f}%")
-
-#         # Informative message
-#         st.info("Note: Predictions are simulated. Real predictions will be available when the API is integrated.")
+            else:
+                st.error("We are unable to retrieve a prediction for this project.")
+        elif response.status_code == 400:
+            st.error("not enough comments to predict the project success or failure.")
+        else:
+            st.error("An error occurred while processing your request. Please try again later.")
