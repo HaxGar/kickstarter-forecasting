@@ -19,7 +19,7 @@ with tab1:
         "1": {
             "id": "1153426630",
             "name": "GUITAR-JO 2.0 - Make Your Electric Guitar",
-            "url": "https://www.kickstarter.com/projects/sample/tech-project-1"
+            "url": "https://www.kickstarter.com/projects/jlangberg/guitar-jo-20-make-your-electric-guitar-sound-like"
         },
         "2": {
             "id": "1053513419",
@@ -29,12 +29,12 @@ with tab1:
         "3": {
             "id": "100411349",
             "name": "E Coin Mining and Rig-Building Workshop",
-            "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop/posts"
+            "url": "https://www.kickstarter.com/projects/1079598152/e-coin-mining-and-rig-building-workshop"
         },
         "4": {
             "id": "1073099678",
             "name": "Pill Swallowing Device",
-            "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device/comments"
+            "url": "https://www.kickstarter.com/projects/1301067747/pill-swallowing-device"
         },
     }
 
@@ -57,6 +57,7 @@ with tab1:
                 }
 
         response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_par_id", params=params)
+#        response = requests.get("http://localhost:8080/predict_par_id", params=params)
         print(response)
 
         if response.status_code == 200:
@@ -98,12 +99,13 @@ with tab1:
 with tab2:
     project_url = st.text_input("Enter the project url :", "")
     # Bouton pour déclencher la requête
-    if st.button("Predict"):
+    if st.button("Scrape and predict"):
         params = {
                     "url": project_url
                 }
 
         response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_by_url", params=params)
+#        response = requests.get("http://localhost:8080/predict_by_url", params=params)
         print(response)
 
         if response.status_code == 200:
