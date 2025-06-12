@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 
 from kickstarter_predictor.predict import pred
 #import numpy as np
@@ -85,13 +85,22 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
     }
 
 @app.get("/predict_by_url")
-def predict_by_url(url: str) -> dict:
+def predict_by_url(url: str, response: Response) -> dict:
     project_name, dataframe_comments, user_comments = scrape_kickstarter_url(
         url
         # "https://www.kickstarter.com/projects/zafirro/zafirro-sapphire-blade-razor"                                                                           # FAIL
         # "https://www.kickstarter.com/projects/hozodesign/neoblade?ref=discovery_category&total_hits=54753&category_id=334"                                    # SUCCESS
         # "https://www.kickstarter.com/projects/ohdoki/the-handy-2-the-1-male-sex-toy-now-even-better?ref=discovery_category&total_hits=54753&category_id=52"   # SUCCESS
     )
+    if len(user_comments) < 2:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            "project_name": project_name,
+            "message": "⚠️ Not enough comments to make a prediction. Please provide at least 2 comments.",
+            "comments": user_comments,
+            "prediction": None,
+            "probability_key": None
+        }
 
     prepreocessed_project = preprocess(dataframe_comments)
 

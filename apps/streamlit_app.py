@@ -143,5 +143,7 @@ with tab2:
 
             else:
                 st.error("We are unable to retrieve a prediction for this project.")
+        elif response.status_code == 400:
+            st.error("not enough comments to predict the project success or failure.")
         else:
-            st.error("We are unable to retrieve a prediction for this project.")
+            st.error("An error occurred while processing your request. Please try again later.")
