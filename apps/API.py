@@ -6,6 +6,7 @@ from kickstarter_predictor.predict import pred
 from kickstarter_predictor.registry import *
 from kickstarter_predictor.preprocess_ML import *
 from kickstarter_predictor.data import *
+from kickstarter_predictor.scraper import scrape_kickstarter_url
 
 app = FastAPI()
 
@@ -79,6 +80,38 @@ def predict_par_id(id_projet : str = '1376423') -> dict :
         "project_name" : df['name'][0],
         "message": message,
         "comments" : [c for c in df['commentaires'][0]],
+        "prediction": int(y_pred),
+        "probability_key": probability
+    }
+
+@app.get("/predict_by_url")
+def predict_by_url(url: str) -> dict:
+    project_name, dataframe_comments, user_comments = scrape_kickstarter_url(
+        url
+        # "https://www.kickstarter.com/projects/zafirro/zafirro-sapphire-blade-razor"                                                                           # FAIL
+        # "https://www.kickstarter.com/projects/hozodesign/neoblade?ref=discovery_category&total_hits=54753&category_id=334"                                    # SUCCESS
+        # "https://www.kickstarter.com/projects/ohdoki/the-handy-2-the-1-male-sex-toy-now-even-better?ref=discovery_category&total_hits=54753&category_id=52"   # SUCCESS
+    )
+
+    prepreocessed_project = preprocess(dataframe_comments)
+
+    result = pred(prepreocessed_project, "20250610-101116_MultinomialNB_by_project.pkl")
+
+      # Aggregate results
+    y_pred = result['y_pred']
+    y_pred_proba = result['y_pred_proba']
+
+    if y_pred == 1:
+        message = "🎉 Your Kickstarter project is likely to SUCCEED!"
+        probability = round(float(y_pred_proba), 4)
+    else:
+        message = "⚠️ Unfortunaltely, your Kickstarter project is likely to FAIL."
+        probability = round(float(y_pred_proba), 4)
+
+    return {
+        "project_name" : project_name,
+        "message": message,
+        "comments" : user_comments,
         "prediction": int(y_pred),
         "probability_key": probability
     }
