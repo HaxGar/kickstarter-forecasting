@@ -104,7 +104,8 @@ with tab2:
                     "url": project_url
                 }
 
-        response = requests.get("https://kickstarter-api-195095770000.europe-west1.run.app/predict_by_url", params=params)
+        # response = requests.get("http://kickstarter-api-195095770000.europe-west1.run.app/predict_by_url", params=params)
+        response = requests.get("http://34.77.27.84/predict_by_url", params=params)
 #        response = requests.get("http://localhost:8080/predict_by_url", params=params)
         print(response)
 

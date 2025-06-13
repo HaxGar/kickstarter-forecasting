@@ -26,5 +26,35 @@ download_raw_data_files:
 install:
 	pip install -e .
 
+
+docker_build:
+	docker compose build
+
+gcp_push:
+	docker compose push
+
+gcp_allow:
+	gcloud compute firewall-rules create allow-fastapi   --allow tcp:80   --source-ranges 0.0.0.0/0   --description "Allow FastAPI on port 80"
+
+gcp_instance_ip:
+	gcloud compute instances describe kickstarter-instance-api --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+
+gcp_deploy:
+	gcloud compute instances create-with-container kickstarter-instance-api 									\
+	--zone=europe-west1-b 																						\
+	--machine-type=e2-small																						\
+	--container-image=europe-west1-docker.pkg.dev/solar-imprint-456810-d6/kickstarter/kickstarter-anatole-fix 	\
+	--tags=http-server 																							\
+	--container-restart-policy=always																			\
+	--container-env ROOT=/kickstarter
+
+instance_ssh:
+	gcloud compute ssh kickstarter-instance-api
+
+cloud:
+	make docker_build
+	make gcp_push
+	make gcp_deploy
+
 test:
 	@echo ${DATA_DIR}

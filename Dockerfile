@@ -31,5 +31,7 @@ ADD data/processed/live_commentaires.parquet ./data/processed/live_commentaires.
 COPY pyproject.toml .
 RUN pip install -e .
 
+EXPOSE 80
+
 # Commande qui sera lancée au démarrage du container
-CMD ["fastapi", "run", "apps/API.py", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["fastapi", "run", "apps/API.py", "--host", "0.0.0.0", "--port", "80"]
